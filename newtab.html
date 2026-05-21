@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en" data-theme="blue">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luminus</title>
+    <link rel="stylesheet" href="input.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,800;1,800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="icon/icon.png">
+  </head>
+  <body class="min-h-screen text-white overflow font-jakarta">
+    <!-- ── BACKGROUND LAYERS ── -->
+    <div
+      id="main-bg"
+      class="fixed inset-0 bg-cover bg-center z-0 transition-all duration-1000"
+    ></div>
+    <!-- Dark base when no image -->
+    <div id="base-overlay" class="fixed inset-0 z-[1] bg-[#07070a]"></div>
+    <!-- Theme colour tint (always visible) -->
+    <div
+      id="theme-overlay"
+      class="fixed inset-0 z-[2] transition-all duration-700 pointer-events-none"
+    ></div>
+    <!-- Ambient mouse light -->
+    <div
+      id="ambient-light"
+      class="fixed inset-0 z-[2] pointer-events-none"
+    ></div>
+    <!-- Subtle noise texture -->
+    <div
+      class="noise fixed inset-0 z-[3] pointer-events-none opacity-[0.025]"
+    ></div>
+
+    <!-- ── HEADER ── -->
+    <header class="fixed top-0 left-0 w-full px-4 md:px-8 py-4 md:py-7 z-30">
+      <!-- MOBILE (50/50 SPLIT) -->
+      <div class="md:hidden w-full flex flex-row gap-3 w-full items-stretch">
+        <!-- LEFT 50% -->
+        <div class="w-1/2 flex flex-col gap-3">
+          <!-- CLOCK -->
+          <div
+            id="time-widget"
+            class="glass-card px-4 py-4 rounded-3xl w-full flex items-center justify-center flex-col gap-1"
+          >
+            <div
+              class="text-3xl font-extrabold leading-none flex items-baseline gap-1"
+            >
+              <span id="h-m">00:00</span>
+              <span id="seconds" class="text-xs opacity-30">00</span>
+            </div>
+            <div
+              id="date"
+              class="text-[8px] uppercase tracking-[0.3em] opacity-40 mt-1"
+            >
+              MONDAY
+            </div>
+          </div>
+
+          <!-- WEATHER -->
+          <div
+            id="weather-widget"
+            class="glass-card px-4 py-4 rounded-3xl flex items-center justify-evenly w-full"
+          >
+            <div class="text-right items-center">
+              <div id="temp" class="text-lg font-bold">--°</div>
+              <div class="text-[8px] opacity-40 uppercase">Sofia</div>
+            </div>
+            <div id="weather-icon" class="text-2xl">☁️</div>
+          </div>
+        </div>
+
+        <!-- RIGHT 50% (NOTES FULL HEIGHT) -->
+        <div class="w-1/2 flex">
+          <aside id="notes-widget-mobile" class="w-full flex">
+            <div class="glass-card rounded-2xl w-full flex flex-col">
+              <div
+                class="px-3 py-2 border-b border-white/10 flex justify-between items-center"
+              >
+                <span class="text-[8px] uppercase tracking-widest opacity-40">
+                  Task Log
+                </span>
+
+                <button onclick="openTaskModal()" class="text-primary text-sm">
+                  +
+                </button>
+              </div>
+
+              <div
+                id="task-list-mobile"
+                class="p-2 flex-1 overflow-y-auto space-y-2 max-h-[100px] custom-scrollbar"
+              ></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- DESKTOP (UNCHANGED CLEAN VERSION) -->
+      <div class="hidden md:flex justify-between items-start w-full">
+        <!-- TIME LEFT -->
+        <div
+          id="time-widget-desktop"
+          class="glass-card px-7 py-5 rounded-3xl w-[320px] items-center flex flex-col gap-1"
+        >
+          <div
+            class="text-5xl font-extrabold leading-none flex items-baseline gap-1"
+          >
+            <span id="h-m-desktop">00:00</span>
+            <span id="seconds-desktop" class="text-lg opacity-30">00</span>
+          </div>
+          <div
+            id="date-desktop"
+            class="text-[9px] uppercase tracking-[0.45em] opacity-40 mt-1"
+          >
+            MONDAY
+          </div>
+        </div>
+
+        <!-- WEATHER RIGHT -->
+        <div
+          id="weather-widget-desktop"
+          class="glass-card px-6 py-4 rounded-3xl flex items-center gap-4 w-[240px] items-center justify-center"
+        >
+          <div class="text-right">
+            <div id="temp-desktop" class="text-2xl font-bold">--°</div>
+            <div class="text-[8px] uppercase opacity-40">Sofia</div>
+          </div>
+
+          <div id="weather-icon-desktop" class="text-3xl">☁️</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── MAIN ── -->
+    <main
+      class="relative z-10 w-full flex flex-col items-center px-6 pt-[320px] md:pt-[220px] pb-24"
+    >
+      <!-- Greeting -->
+      <section
+        id="focus-greeting"
+        class="relative z-20 flex flex-col items-center text-center select-none"
+      >
+        <h1 id="greeting-text">Good evening, Joe.</h1>
+
+        <p id="focus-text">READY TO FOCUS?</p>
+      </section>
+      <!-- Search bar -->
+      <form
+        action="https://www.google.com/search"
+        method="GET"
+        class="w-full max-w-xl search-form animate-slide-up group"
+      >
+        <div class="relative">
+          <svg
+            class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30 group-focus-within:opacity-70 transition-opacity"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            viewBox="0 0 24 24"
+          >
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            name="q"
+            placeholder="Search the web…"
+            class="w-full search-input pl-12 pr-6 py-4 text-sm font-medium placeholder-opacity-40"
+          />
+        </div>
+      </form>
+
+      <!-- Bookmarks speed-dial -->
+      <div
+        id="bookmark-widget"
+        class="w-full max-w-4xl animate-fade-in"
+        style="animation-delay: 200ms"
+      >
+        <div id="bookmarks-grid" class="flex flex-wrap justify-center gap-7">
+          <!-- injected by JS -->
+        </div>
+      </div>
+    </main>
+
+    <!-- ── TASKS DESKTOP FLOATING ── -->
+    <aside
+      id="notes-widget"
+      class="hidden md:block fixed left-8 bottom-10 w-80 lg:w-96 z-20 animate-slide-up"
+      style="animation-delay: 400ms"
+    >
+      <div class="glass-card rounded-3xl overflow-hidden flex flex-col">
+        <div
+          class="px-5 py-3.5 border-b border-white/[0.06] flex justify-between items-center"
+        >
+          <span
+            class="text-[9px] font-black tracking-[0.3em] opacity-30 uppercase"
+          >
+            Task Log
+          </span>
+
+          <div class="flex gap-1">
+            <button
+              onclick="clearAllTasks()"
+              class="icon-btn hover:text-red-400"
+              title="Clear all"
+            >
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+
+            <button
+              onclick="openTaskModal()"
+              class="icon-btn text-primary hover:scale-125"
+            >
+              <svg
+                width="15"
+                height="15"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="task-list"
+          class="p-4 max-h-44 overflow-y-auto custom-scrollbar space-y-3 max-h-[100px] custom-scrollbar"
+        ></div>
+      </div>
+    </aside>
+
+    <!-- ── MENU BUTTON (right side) ── -->
+    <button
+      id="menu-btn"
+      class="fixed top-1/2 right-5 -translate-y-1/2 z-[45] p-3.5 glass-card rounded-2xl hover:scale-110 transition-all duration-300 flex flex-col gap-[5px]"
+    >
+      <div
+        class="w-[5px] h-[5px] rounded-full bg-primary transition-all duration-300 menu-dot"
+      ></div>
+      <div
+        class="w-[5px] h-[5px] rounded-full bg-primary transition-all duration-300 menu-dot"
+      ></div>
+      <div
+        class="w-[5px] h-[5px] rounded-full bg-primary transition-all duration-300 menu-dot"
+      ></div>
+    </button>
+
+    <!-- ── SETTINGS SIDEBAR (RIGHT) ── -->
+    <aside
+      id="settings-sidebar"
+      class="fixed top-0 right-0 translate-x-full w-[340px] h-full z-[100] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col"
+    >
+      <div
+        class="glass-sidebar h-full flex flex-col p-8 gap-10 overflow-y-auto custom-scrollbar"
+      >
+        <!-- Header -->
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-black italic tracking-tight leading-none">
+              LUMINUS CONFIG
+            </h2>
+            <div
+              class="h-[3px] w-8 bg-primary mt-2 rounded-full transition-colors duration-500"
+            ></div>
+          </div>
+          <button
+            id="close-sidebar"
+            class="w-9 h-9 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-red-500/80 transition-all duration-200"
+          >
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Theme -->
+        <section>
+          <h3 class="sidebar-label">Interface Skin</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              onclick="setTheme('blue')"
+              class="theme-btn"
+              data-theme-btn="blue"
+            >
+              <span class="theme-dot bg-blue-500"></span>Cobalt
+            </button>
+            <button
+              onclick="setTheme('red')"
+              class="theme-btn"
+              data-theme-btn="red"
+            >
+              <span class="theme-dot bg-red-500"></span>GX Red
+            </button>
+            <button
+              onclick="setTheme('purple')"
+              class="theme-btn"
+              data-theme-btn="purple"
+            >
+              <span class="theme-dot bg-purple-500"></span>Neon
+            </button>
+            <button
+              onclick="setTheme('black')"
+              class="theme-btn"
+              data-theme-btn="black"
+            >
+              <span class="theme-dot bg-white/60"></span>Void
+            </button>
+          </div>
+        </section>
+
+        <!-- Username -->
+        <section>
+          <h3 class="sidebar-label">User</h3>
+
+          <input
+            id="username-input"
+            type="text"
+            placeholder="Enter your name"
+            class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm outline-none focus:border-primary placeholder:text-white/20"
+            autocomplete="off"
+          />
+        </section>
+
+        <!-- Visibility -->
+        <section>
+          <h3 class="sidebar-label">Visibility</h3>
+          <div class="space-y-2.5">
+            <label class="toggle-row">
+              <span>Weather</span>
+              <input
+                type="checkbox"
+                id="toggle-weather"
+                checked
+                onchange="toggleWidget('weather')"
+                class="toggle toggle-primary toggle-xs"
+              />
+            </label>
+            <label class="toggle-row">
+              <span>Clock</span>
+              <input
+                type="checkbox"
+                id="toggle-clock"
+                checked
+                onchange="toggleWidget('clock')"
+                class="toggle toggle-primary toggle-xs"
+              />
+            </label>
+            <label class="toggle-row">
+              <span>Bookmarks</span>
+              <input
+                type="checkbox"
+                id="toggle-bookmarks"
+                checked
+                onchange="toggleWidget('bookmarks')"
+                class="toggle toggle-primary toggle-xs"
+              />
+            </label>
+            <label class="toggle-row">
+              <span>Task Log</span>
+              <input
+                type="checkbox"
+                id="toggle-tasks"
+                checked
+                onchange="toggleWidget('tasks')"
+                class="toggle toggle-primary toggle-xs"
+              />
+            </label>
+          </div>
+        </section>
+
+        <!-- Wallpaper -->
+        <section>
+          <h3 class="sidebar-label">Wallpaper</h3>
+
+          <label
+            id="wallpaper-preview"
+            class="wallpaper-drop group cursor-pointer relative block overflow-hidden"
+          >
+            <!-- preview layer -->
+            <div
+              id="wallpaper-thumb"
+              class="absolute inset-0 bg-cover bg-center opacity-20 scale-110 transition-all duration-500"
+            ></div>
+
+            <!-- content -->
+            <div class="relative text-center pointer-events-none z-10">
+              <svg
+                class="w-6 h-6 mx-auto mb-2 opacity-30 group-hover:opacity-60 transition-opacity"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+
+              <p
+                class="text-[9px] font-bold opacity-30 group-hover:opacity-60 uppercase tracking-widest transition-opacity"
+              >
+                Drop or browse image
+              </p>
+            </div>
+
+            <input
+              type="file"
+              id="bg-input"
+              accept="image/*"
+              class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
+          </label>
+
+          <button
+            onclick="clearBg()"
+            class="mt-3 text-[9px] text-red-400/70 hover:text-red-400 font-bold tracking-widest uppercase transition-colors flex items-center gap-1.5"
+          >
+            <svg
+              width="10"
+              height="10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Remove wallpaper
+          </button>
+        </section>
+
+        <section>
+          <h3 class="sidebar-label">Wallpaper Controls</h3>
+
+          <div class="space-y-5">
+            <!-- BLUR -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] opacity-50 tracking-widest uppercase"
+                  >Blur</label
+                >
+                <span id="blur-value" class="text-[10px] opacity-40">0</span>
+              </div>
+              <input
+                id="blur-slider"
+                type="range"
+                min="0"
+                max="20"
+                step="0.05"
+                class="w-full accent-primary h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
+              />
+            </div>
+
+            <!-- BRIGHTNESS (WIDER RANGE) -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] opacity-50 tracking-widest uppercase"
+                  >Brightness</label
+                >
+                <span id="brightness-value" class="text-[10px] opacity-40"
+                  >1.0</span
+                >
+              </div>
+              <input
+                id="brightness-slider"
+                type="range"
+                min="0.1"
+                max="1.5"
+                step="0.01"
+                value="0.7"
+                class="w-full accent-primary h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
+              />
+            </div>
+
+            <!-- VIGNETTE -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] opacity-50 tracking-widest uppercase"
+                  >Vignette</label
+                >
+                <span id="vignette-value" class="text-[10px] opacity-40"
+                  >0.0</span
+                >
+              </div>
+              <input
+                id="vignette-slider"
+                type="range"
+                min="0"
+                max="0.9"
+                step="0.05"
+                class="w-full accent-primary h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
+              />
+            </div>
+
+            <!-- TINT -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] opacity-50 tracking-widest uppercase"
+                  >Tint</label
+                >
+                <span id="tint-value" class="text-[10px] opacity-40">0.0</span>
+              </div>
+              <input
+                id="tint-slider"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                class="w-full accent-primary h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- ── MODAL ── -->
+    <div
+      id="modal-backdrop"
+      class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300"
+    >
+      <div
+        id="modal-box"
+        class="glass-card rounded-3xl w-full max-w-sm mx-4 p-7 scale-95 transition-all duration-300 shadow-2xl"
+      >
+        <h3
+          id="modal-title"
+          class="font-black text-lg italic tracking-tight mb-5"
+        >
+          ADD LINK
+        </h3>
+        <div id="modal-inputs" class="space-y-3"></div>
+        <div class="flex gap-3 mt-6">
+          <button
+            onclick="closeModal()"
+            class="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-bold tracking-wider uppercase transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            id="modal-confirm"
+            class="flex-1 py-3 rounded-2xl bg-primary/80 hover:bg-primary text-xs font-black tracking-wider uppercase transition-all"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hover trigger zone -->
+    <div id="sidebar-hover-zone"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
