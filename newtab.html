@@ -17,35 +17,26 @@
     <link rel="icon" type="image/png" href="icon/icon.png">
   </head>
   <body class="min-h-screen text-white overflow font-jakarta">
-    <!-- ── BACKGROUND LAYERS ── -->
     <div
       id="main-bg"
       class="fixed inset-0 bg-cover bg-center z-0 transition-all duration-1000"
     ></div>
-    <!-- Dark base when no image -->
     <div id="base-overlay" class="fixed inset-0 z-[1] bg-[#07070a]"></div>
-    <!-- Theme colour tint (always visible) -->
     <div
       id="theme-overlay"
       class="fixed inset-0 z-[2] transition-all duration-700 pointer-events-none"
     ></div>
-    <!-- Ambient mouse light -->
     <div
       id="ambient-light"
       class="fixed inset-0 z-[2] pointer-events-none"
     ></div>
-    <!-- Subtle noise texture -->
     <div
       class="noise fixed inset-0 z-[3] pointer-events-none opacity-[0.025]"
     ></div>
 
-    <!-- ── HEADER ── -->
     <header class="fixed top-0 left-0 w-full px-4 md:px-8 py-4 md:py-7 z-30">
-      <!-- MOBILE (50/50 SPLIT) -->
       <div class="md:hidden w-full flex flex-row gap-3 w-full items-stretch">
-        <!-- LEFT 50% -->
         <div class="w-1/2 flex flex-col gap-3">
-          <!-- CLOCK -->
           <div
             id="time-widget"
             class="glass-card px-4 py-4 rounded-3xl w-full flex items-center justify-center flex-col gap-1"
@@ -64,7 +55,6 @@
             </div>
           </div>
 
-          <!-- WEATHER -->
           <div
             id="weather-widget"
             class="glass-card px-4 py-4 rounded-3xl flex items-center justify-evenly w-full"
@@ -77,7 +67,6 @@
           </div>
         </div>
 
-        <!-- RIGHT 50% (NOTES FULL HEIGHT) -->
         <div class="w-1/2 flex">
           <aside id="notes-widget-mobile" class="w-full flex">
             <div class="glass-card rounded-2xl w-full flex flex-col">
@@ -88,7 +77,7 @@
                   Task Log
                 </span>
 
-                <button onclick="openTaskModal()" class="text-primary text-sm">
+                <button class="task-add-trigger text-primary text-sm">
                   +
                 </button>
               </div>
@@ -102,9 +91,7 @@
         </div>
       </div>
 
-      <!-- DESKTOP (UNCHANGED CLEAN VERSION) -->
       <div class="hidden md:flex justify-between items-start w-full">
-        <!-- TIME LEFT -->
         <div
           id="time-widget-desktop"
           class="glass-card px-7 py-5 rounded-3xl w-[320px] items-center flex flex-col gap-1"
@@ -123,7 +110,6 @@
           </div>
         </div>
 
-        <!-- WEATHER RIGHT -->
         <div
           id="weather-widget-desktop"
           class="glass-card px-6 py-4 rounded-3xl flex items-center gap-4 w-[240px] items-center justify-center"
@@ -138,11 +124,9 @@
       </div>
     </header>
 
-    <!-- ── MAIN ── -->
     <main
       class="relative z-10 w-full flex flex-col items-center px-6 pt-[320px] md:pt-[220px] pb-24"
     >
-      <!-- Greeting -->
       <section
         id="focus-greeting"
         class="relative z-20 flex flex-col items-center text-center select-none"
@@ -151,7 +135,6 @@
 
         <p id="focus-text">READY TO FOCUS?</p>
       </section>
-      <!-- Search bar -->
       <form
         action="https://www.google.com/search"
         method="GET"
@@ -176,19 +159,16 @@
         </div>
       </form>
 
-      <!-- Bookmarks speed-dial -->
       <div
         id="bookmark-widget"
         class="w-full max-w-4xl animate-fade-in"
         style="animation-delay: 200ms"
       >
         <div id="bookmarks-grid" class="flex flex-wrap justify-center gap-7">
-          <!-- injected by JS -->
-        </div>
+          </div>
       </div>
     </main>
 
-    <!-- ── TASKS DESKTOP FLOATING ── -->
     <aside
       id="notes-widget"
       class="hidden md:block fixed left-8 bottom-10 w-80 lg:w-96 z-20 animate-slide-up"
@@ -206,8 +186,7 @@
 
           <div class="flex gap-1">
             <button
-              onclick="clearAllTasks()"
-              class="icon-btn hover:text-red-400"
+              class="clear-tasks-trigger icon-btn hover:text-red-400"
               title="Clear all"
             >
               <svg
@@ -225,8 +204,7 @@
             </button>
 
             <button
-              onclick="openTaskModal()"
-              class="icon-btn text-primary hover:scale-125"
+              class="task-add-trigger icon-btn text-primary hover:scale-125"
             >
               <svg
                 width="15"
@@ -249,7 +227,6 @@
       </div>
     </aside>
 
-    <!-- ── MENU BUTTON (right side) ── -->
     <button
       id="menu-btn"
       class="fixed top-1/2 right-5 -translate-y-1/2 z-[45] p-3.5 glass-card rounded-2xl hover:scale-110 transition-all duration-300 flex flex-col gap-[5px]"
@@ -265,7 +242,6 @@
       ></div>
     </button>
 
-    <!-- ── SETTINGS SIDEBAR (RIGHT) ── -->
     <aside
       id="settings-sidebar"
       class="fixed top-0 right-0 translate-x-full w-[340px] h-full z-[100] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col"
@@ -273,7 +249,6 @@
       <div
         class="glass-sidebar h-full flex flex-col p-8 gap-10 overflow-y-auto custom-scrollbar"
       >
-        <!-- Header -->
         <div class="flex justify-between items-center">
           <div>
             <h2 class="text-xl font-black italic tracking-tight leading-none">
@@ -300,42 +275,24 @@
           </button>
         </div>
 
-        <!-- Theme -->
         <section>
           <h3 class="sidebar-label">Interface Skin</h3>
           <div class="grid grid-cols-2 gap-3">
-            <button
-              onclick="setTheme('blue')"
-              class="theme-btn"
-              data-theme-btn="blue"
-            >
+            <button class="theme-btn" data-theme-btn="blue">
               <span class="theme-dot bg-blue-500"></span>Cobalt
             </button>
-            <button
-              onclick="setTheme('red')"
-              class="theme-btn"
-              data-theme-btn="red"
-            >
+            <button class="theme-btn" data-theme-btn="red">
               <span class="theme-dot bg-red-500"></span>GX Red
             </button>
-            <button
-              onclick="setTheme('purple')"
-              class="theme-btn"
-              data-theme-btn="purple"
-            >
+            <button class="theme-btn" data-theme-btn="purple">
               <span class="theme-dot bg-purple-500"></span>Neon
             </button>
-            <button
-              onclick="setTheme('black')"
-              class="theme-btn"
-              data-theme-btn="black"
-            >
+            <button class="theme-btn" data-theme-btn="black">
               <span class="theme-dot bg-white/60"></span>Void
             </button>
           </div>
         </section>
 
-        <!-- Username -->
         <section>
           <h3 class="sidebar-label">User</h3>
 
@@ -348,7 +305,6 @@
           />
         </section>
 
-        <!-- Visibility -->
         <section>
           <h3 class="sidebar-label">Visibility</h3>
           <div class="space-y-2.5">
@@ -358,7 +314,6 @@
                 type="checkbox"
                 id="toggle-weather"
                 checked
-                onchange="toggleWidget('weather')"
                 class="toggle toggle-primary toggle-xs"
               />
             </label>
@@ -368,7 +323,6 @@
                 type="checkbox"
                 id="toggle-clock"
                 checked
-                onchange="toggleWidget('clock')"
                 class="toggle toggle-primary toggle-xs"
               />
             </label>
@@ -378,7 +332,6 @@
                 type="checkbox"
                 id="toggle-bookmarks"
                 checked
-                onchange="toggleWidget('bookmarks')"
                 class="toggle toggle-primary toggle-xs"
               />
             </label>
@@ -388,14 +341,12 @@
                 type="checkbox"
                 id="toggle-tasks"
                 checked
-                onchange="toggleWidget('tasks')"
                 class="toggle toggle-primary toggle-xs"
               />
             </label>
           </div>
         </section>
 
-        <!-- Wallpaper -->
         <section>
           <h3 class="sidebar-label">Wallpaper</h3>
 
@@ -403,13 +354,11 @@
             id="wallpaper-preview"
             class="wallpaper-drop group cursor-pointer relative block overflow-hidden"
           >
-            <!-- preview layer -->
             <div
               id="wallpaper-thumb"
               class="absolute inset-0 bg-cover bg-center opacity-20 scale-110 transition-all duration-500"
             ></div>
 
-            <!-- content -->
             <div class="relative text-center pointer-events-none z-10">
               <svg
                 class="w-6 h-6 mx-auto mb-2 opacity-30 group-hover:opacity-60 transition-opacity"
@@ -439,7 +388,7 @@
           </label>
 
           <button
-            onclick="clearBg()"
+            id="clear-bg-btn"
             class="mt-3 text-[9px] text-red-400/70 hover:text-red-400 font-bold tracking-widest uppercase transition-colors flex items-center gap-1.5"
           >
             <svg
@@ -460,7 +409,6 @@
           <h3 class="sidebar-label">Wallpaper Controls</h3>
 
           <div class="space-y-5">
-            <!-- BLUR -->
             <div class="space-y-1">
               <div class="flex justify-between items-center">
                 <label class="text-[10px] opacity-50 tracking-widest uppercase"
@@ -478,7 +426,6 @@
               />
             </div>
 
-            <!-- BRIGHTNESS (WIDER RANGE) -->
             <div class="space-y-1">
               <div class="flex justify-between items-center">
                 <label class="text-[10px] opacity-50 tracking-widest uppercase"
@@ -499,7 +446,6 @@
               />
             </div>
 
-            <!-- VIGNETTE -->
             <div class="space-y-1">
               <div class="flex justify-between items-center">
                 <label class="text-[10px] opacity-50 tracking-widest uppercase"
@@ -519,7 +465,6 @@
               />
             </div>
 
-            <!-- TINT -->
             <div class="space-y-1">
               <div class="flex justify-between items-center">
                 <label class="text-[10px] opacity-50 tracking-widest uppercase"
@@ -541,7 +486,6 @@
       </div>
     </aside>
 
-    <!-- ── MODAL ── -->
     <div
       id="modal-backdrop"
       class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300"
@@ -559,8 +503,7 @@
         <div id="modal-inputs" class="space-y-3"></div>
         <div class="flex gap-3 mt-6">
           <button
-            onclick="closeModal()"
-            class="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-bold tracking-wider uppercase transition-all"
+            class="modal-cancel-trigger flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-bold tracking-wider uppercase transition-all"
           >
             Cancel
           </button>
@@ -574,7 +517,6 @@
       </div>
     </div>
 
-    <!-- Hover trigger zone -->
     <div id="sidebar-hover-zone"></div>
     <script src="script.js"></script>
   </body>

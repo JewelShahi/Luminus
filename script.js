@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initWallpaperControls();
   applyWallpaperEffects();
   initWidgetVisibility();
-  setupEventDelegation(); // Added for lightweight dynamic element actions
+  setupEventDelegation(); 
 });
 
 /* ── USERNAME ─────────────────────────────────────────────── */
@@ -386,7 +386,7 @@ function applyTheme(theme) {
 
 /* ── EVENT DELEGATION ─────────────────────────────────────── */
 function setupEventDelegation() {
-  // Handles bookmark removals and task checkbox mutations cleanly
+  // Bookmark additions & removals
   document.getElementById("bookmarks-grid")?.addEventListener("click", (e) => {
     const removeBtn = e.target.closest(".bookmark-remove");
     if (removeBtn) {
@@ -394,9 +394,16 @@ function setupEventDelegation() {
       e.stopPropagation();
       const index = parseInt(removeBtn.dataset.index, 10);
       removeBookmark(removeBtn.closest(".bookmark-item"), index);
+      return;
+    }
+
+    const addBtn = e.target.closest(".bookmark-add");
+    if (addBtn) {
+      openLinkModal();
     }
   });
 
+  // Task events
   const handleTaskListClick = (e) => {
     const target = e.target;
     const taskItem = target.closest(".task-item");
@@ -410,12 +417,35 @@ function setupEventDelegation() {
     }
   };
 
-  document
-    .getElementById("task-list")
-    ?.addEventListener("click", handleTaskListClick);
-  document
-    .getElementById("task-list-mobile")
-    ?.addEventListener("click", handleTaskListClick);
+  document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
+  document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
+
+  // Task action triggers (Fixes CSP issue)
+  document.addEventListener("click", (e) => {
+    if (e.target.closest(".task-add-trigger")) {
+      openTaskModal();
+    }
+    if (e.target.closest(".clear-tasks-trigger")) {
+      clearAllTasks();
+    }
+  });
+
+  // Interface Skin Theme Button bindings
+  document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setTheme(btn.dataset.themeBtn);
+    });
+  });
+
+  // Sidebar widget toggles
+  ["weather", "clock", "bookmarks", "tasks"].forEach((key) => {
+    document.getElementById(`toggle-${key}`)?.addEventListener("change", () => {
+      toggleWidget(key);
+    });
+  });
+
+  // Remove wallpaper binding
+  document.getElementById("clear-bg-btn")?.addEventListener("click", clearBg);
 }
 
 /* ── BOOKMARKS ────────────────────────────────────────────── */
@@ -444,7 +474,7 @@ function renderBookmarks() {
     addDiv.className = "bookmark-item";
     addDiv.style.animationDelay = `${state.bookmarks.length * 50}ms`;
     addDiv.innerHTML = `
-      <button class="bookmark-add" onclick="openLinkModal()" title="Add link">
+      <button class="bookmark-add" title="Add link">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M12 5v14M5 12h14"/>
         </svg>
@@ -630,11 +660,9 @@ function shakeinput() {
 function setupBg() {
   const savedBg = safeGet("gx_bg");
   
-  // Check if a valid user-uploaded image exists in local storage
   if (typeof savedBg === "string" && savedBg.startsWith("data:image")) {
     applyBg(savedBg);
   } else {
-    // If history is cleared or no custom image exists, fall back to the default asset
     clearBg();
   }
 
@@ -682,7 +710,7 @@ function applyBg(dataUrl) {
   const thumb = document.getElementById("wallpaper-thumb");
 
   if (bg) bg.style.backgroundImage = `url(${dataUrl})`;
-  if (base) base.style.opacity = "0"; // Hide base overlay to show the image
+  if (base) base.style.opacity = "0"; 
   if (thumb) thumb.style.backgroundImage = `url(${dataUrl})`;
 
   state.hasBg = true;
@@ -696,11 +724,10 @@ function clearBg() {
   const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
 
-  // Set the default fallback image here
   const fallbackUrl = "url('background-image.png')";
 
   if (bg) bg.style.backgroundImage = fallbackUrl;
-  if (base) base.style.opacity = "0"; // Changed to 0 so the fallback image shows through instead of the color overlay
+  if (base) base.style.opacity = "0"; 
   if (thumb) thumb.style.backgroundImage = fallbackUrl;
 
   state.hasBg = false;
@@ -758,6 +785,76 @@ function initWallpaperControls() {
   bind("tint-slider", "tint", "tint-value", (v) => v.toFixed(2));
 
   applyWallpaperEffects();
+}
+
+/* ── EVENT DELEGATION ─────────────────────────────────────── */
+function setupEventDelegation() {
+  // Handles bookmark grid items dynamically (Add or Remove clicks)
+  document.getElementById("bookmarks-grid")?.addEventListener("click", (e) => {
+    const removeBtn = e.target.closest(".bookmark-remove");
+    if (removeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const index = parseInt(removeBtn.dataset.index, 10);
+      removeBookmark(removeBtn.closest(".bookmark-item"), index);
+      return;
+    }
+
+    const addBtn = e.target.closest(".bookmark-add");
+    if (addBtn) {
+      openLinkModal();
+    }
+  });
+
+  // Handles checking or deleting individual list items
+  const handleTaskListClick = (e) => {
+    const target = e.target;
+    const taskItem = target.closest(".task-item");
+    if (!taskItem) return;
+    const index = parseInt(taskItem.dataset.index, 10);
+
+    if (target.classList.contains("task-del")) {
+      deleteTask(index);
+    } else if (target.type === "checkbox") {
+      toggleTask(index);
+    }
+  };
+
+  document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
+  document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
+
+  // Global document click listener (Catches duplicate/multiple buttons cleanly)
+  document.addEventListener("click", (e) => {
+    // Triggers either of the '+' Add Task buttons
+    if (e.target.closest(".task-add-trigger")) {
+      openTaskModal();
+    }
+    // Triggers the 'Clear all' task icon
+    if (e.target.closest(".clear-tasks-trigger")) {
+      clearAllTasks();
+    }
+    // Triggers the modal close/cancel actions
+    if (e.target.closest(".modal-cancel-trigger")) {
+      closeModal();
+    }
+  });
+
+  // Interface Skin Dot Buttons
+  document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setTheme(btn.dataset.themeBtn);
+    });
+  });
+
+  // Sidebar visibility switches
+  ["weather", "clock", "bookmarks", "tasks"].forEach((key) => {
+    document.getElementById(`toggle-${key}`)?.addEventListener("change", () => {
+      toggleWidget(key);
+    });
+  });
+
+  // Reset Wallpaper button hook
+  document.getElementById("clear-bg-btn")?.addEventListener("click", clearBg);
 }
 
 /* ── TEARDOWN CLEANUP ─────────────────────────────────────── */
