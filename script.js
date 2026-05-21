@@ -35,7 +35,7 @@ const state = {
 function getDefaultBookmarks() {
   return [
     { name: "YouTube", url: "https://www.youtube.com" },
-    { name: "Discord", url: "https://discord.com" },
+    { name: "Discord", url: "https://discord.com/login" },
   ];
 }
 
