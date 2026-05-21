@@ -111,10 +111,10 @@ function initWidgetVisibility() {
 
 /* ── Wallpaper FX ─────────────────────────────────────────── */
 const DEFAULT_WALLPAPER_FX = {
-  blur: 0,
-  brightness: 1,
-  vignette: 0.0,
-  tint: 0.25,
+  blur: 2.5,
+  brightness: 0.25,
+  vignette: 0.05,
+  tint: 0.15,
 };
 const wallpaperFX = (() => {
   const fx = {};
@@ -629,9 +629,12 @@ function shakeinput() {
 /* ── BACKGROUND ───────────────────────────────────────────── */
 function setupBg() {
   const savedBg = safeGet("gx_bg");
+  
+  // Check if a valid user-uploaded image exists in local storage
   if (typeof savedBg === "string" && savedBg.startsWith("data:image")) {
     applyBg(savedBg);
   } else {
+    // If history is cleared or no custom image exists, fall back to the default asset
     clearBg();
   }
 
@@ -679,7 +682,7 @@ function applyBg(dataUrl) {
   const thumb = document.getElementById("wallpaper-thumb");
 
   if (bg) bg.style.backgroundImage = `url(${dataUrl})`;
-  if (base) base.style.opacity = "0";
+  if (base) base.style.opacity = "0"; // Hide base overlay to show the image
   if (thumb) thumb.style.backgroundImage = `url(${dataUrl})`;
 
   state.hasBg = true;
@@ -693,9 +696,12 @@ function clearBg() {
   const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
 
-  if (bg) bg.style.backgroundImage = "";
-  if (base) base.style.opacity = "1";
-  if (thumb) thumb.style.backgroundImage = "";
+  // Set the default fallback image here
+  const fallbackUrl = "url('background-image.png')";
+
+  if (bg) bg.style.backgroundImage = fallbackUrl;
+  if (base) base.style.opacity = "0"; // Changed to 0 so the fallback image shows through instead of the color overlay
+  if (thumb) thumb.style.backgroundImage = fallbackUrl;
 
   state.hasBg = false;
   const inp = document.getElementById("bg-input");
