@@ -239,11 +239,16 @@ function initClock() {
 /* ── GREETING ─────────────────────────────────────────────── */
 let greetingIntervalId = null;
 const slots = [
-  { max: 5, greet: "Still awake", focus: "Late-night grind." },
-  { max: 12, greet: "Good morning", focus: "Start sharp." },
-  { max: 18, greet: "Good afternoon", focus: "Stay productive." },
-  { max: 23, greet: "Good evening", focus: "Ready to focus?" },
-  { max: 24, greet: "Still awake", focus: "Late-night grind." },
+  { min: 0,  max: 3,  greet: "Hey night owl", focus: "Finishing up, or just getting started?" },
+  { min: 3,  max: 5,  greet: "Wow you're up late", focus: "Make it count, then get some rest." },
+  { min: 5,  max: 7,  greet: "Good early morning", focus: "Ahead of the crowd. Let's do this." },
+  { min: 7,  max: 9,  greet: "Rise and shine", focus: "Grab your coffee. What's the plan today?" },
+  { min: 9,  max: 12, greet: "Good morning", focus: "Peak focus hours. Let's crush it." },
+  { min: 12, max: 14, greet: "Happy midday", focus: "Hope you had lunch! Ready for round two?" },
+  { min: 14, max: 17, greet: "Good afternoon", focus: "Powering through the afternoon slump." },
+  { min: 17, max: 19, greet: "Welcome back", focus: "Wrapping up the day, or starting a side hustle?" },
+  { min: 19, max: 21, greet: "Good evening", focus: "Winding down or doing some light reading?" },
+  { min: 21, max: 24, greet: "Hey there", focus: "The world is quiet. Perfect time to focus." }
 ];
 
 function updateGreeting() {
@@ -252,7 +257,9 @@ function updateGreeting() {
   if (!greetingEl || !focusEl) return;
 
   const hour = new Date().getHours();
-  const slot = slots.find((s) => hour < s.max) || slots[1];
+  
+  const slot = slots.find((s) => hour >= s.min && hour < s.max) || slots[4];
+
   const name = state.username ? `, ${state.username}` : "";
 
   greetingEl.textContent = `${slot.greet}${name}.`;
