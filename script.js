@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initWallpaperControls();
   applyWallpaperEffects();
   initWidgetVisibility();
-  setupEventDelegation(); 
+  setupEventDelegation();
 });
 
 /* ── USERNAME ─────────────────────────────────────────────── */
@@ -239,16 +239,66 @@ function initClock() {
 /* ── GREETING ─────────────────────────────────────────────── */
 let greetingIntervalId = null;
 const slots = [
-  { min: 0,  max: 3,  greet: "Hey night owl", focus: "Finishing up, or just getting started?" },
-  { min: 3,  max: 5,  greet: "Wow you're up late", focus: "Make it count, then get some rest." },
-  { min: 5,  max: 7,  greet: "Good early morning", focus: "Ahead of the crowd. Let's do this." },
-  { min: 7,  max: 9,  greet: "Rise and shine", focus: "Grab your coffee. What's the plan today?" },
-  { min: 9,  max: 12, greet: "Good morning", focus: "Peak focus hours. Let's crush it." },
-  { min: 12, max: 14, greet: "Happy midday", focus: "Hope you had lunch! Ready for round two?" },
-  { min: 14, max: 17, greet: "Good afternoon", focus: "Powering through the afternoon slump." },
-  { min: 17, max: 19, greet: "Welcome back", focus: "Wrapping up the day, or starting a side hustle?" },
-  { min: 19, max: 21, greet: "Good evening", focus: "Winding down or doing some light reading?" },
-  { min: 21, max: 24, greet: "Hey there", focus: "The world is quiet. Perfect time to focus." }
+  {
+    min: 0,
+    max: 3,
+    greet: "Hey night owl",
+    focus: "Finishing up, or just getting started?",
+  },
+  {
+    min: 3,
+    max: 5,
+    greet: "Wow you're up late",
+    focus: "Make it count, then get some rest.",
+  },
+  {
+    min: 5,
+    max: 7,
+    greet: "Good early morning",
+    focus: "Ahead of the crowd. Let's do this.",
+  },
+  {
+    min: 7,
+    max: 9,
+    greet: "Rise and shine",
+    focus: "Grab your coffee. What's the plan today?",
+  },
+  {
+    min: 9,
+    max: 12,
+    greet: "Good morning",
+    focus: "Peak focus hours. Let's crush it.",
+  },
+  {
+    min: 12,
+    max: 14,
+    greet: "Happy midday",
+    focus: "Hope you had lunch! Ready for round two?",
+  },
+  {
+    min: 14,
+    max: 17,
+    greet: "Good afternoon",
+    focus: "Powering through the afternoon slump.",
+  },
+  {
+    min: 17,
+    max: 19,
+    greet: "Welcome back",
+    focus: "Wrapping up the day, or starting a side hustle?",
+  },
+  {
+    min: 19,
+    max: 21,
+    greet: "Good evening",
+    focus: "Winding down or doing some light reading?",
+  },
+  {
+    min: 21,
+    max: 24,
+    greet: "Hey there",
+    focus: "The world is quiet. Perfect time to focus.",
+  },
 ];
 
 function updateGreeting() {
@@ -257,7 +307,7 @@ function updateGreeting() {
   if (!greetingEl || !focusEl) return;
 
   const hour = new Date().getHours();
-  
+
   const slot = slots.find((s) => hour >= s.min && hour < s.max) || slots[4];
 
   const name = state.username ? `, ${state.username}` : "";
@@ -304,43 +354,214 @@ function setupAmbientLight() {
 }
 
 /* ── WEATHER ──────────────────────────────────────────────── */
-async function getWeather() {
-  try {
-    const r = await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219&current_weather=true",
-    );
-    const d = await r.json();
-    const { temperature, weathercode } = d.current_weather;
+function getWeather() {
+  const iceC = "#67E8F9",
+    rainC = "#60A5FA",
+    rainH = "#3B82F6",
+    snowC = "#BAE6FD",
+    hailC = "#E0F2FE";
+  const clL = "#D1DCE8",
+    clM = "#8FA5B8",
+    clD = "#546070",
+    clS = "#2B3845",
+    fogC = "#9CA3AF";
 
-    const icons = {
-      0: "☀️",
-      1: "🌤️",
-      2: "⛅",
-      3: "☁️",
-      45: "🌫️",
-      48: "🌫️",
-      51: "🌦️",
-      61: "🌧️",
-      71: "🌨️",
-      80: "🌦️",
-      95: "🌩️",
-    };
-    const icon = icons[weathercode] ?? "🌡️";
-    const tempStr = `${Math.round(temperature)}°`;
+  // Static sub-components built once manually instead of dynamically mapping arrays
+  const clBig = (f) =>
+    `<circle cx="16" cy="14" r="7" fill="${f}"/><circle cx="10" cy="18" r="5" fill="${f}"/><circle cx="22" cy="18" r="5" fill="${f}"/><rect x="5" y="18" width="22" height="5" fill="${f}"/>`;
+  const clSml = (f) =>
+    `<circle cx="14" cy="20" r="5" fill="${f}"/><circle cx="9" cy="22" r="3.5" fill="${f}"/><circle cx="19" cy="22" r="3.5" fill="${f}"/><rect x="5" y="22" width="18" height="4" fill="${f}"/>`;
+  const bolt = (bx = 14, by = 14) =>
+    `<polygon points="${bx + 3},${by} ${bx},${by + 7} ${bx + 2.5},${by + 7} ${bx - 1},${by + 15} ${bx + 6},${by + 6} ${bx + 3},${by + 6}" fill="#FCD34D"/>`;
 
-    const elements = [
-      "temp",
-      "weather-icon",
-      "temp-desktop",
-      "weather-icon-desktop",
-    ].map((id) => document.getElementById(id));
-    if (elements[0]) elements[0].textContent = tempStr;
-    if (elements[1]) elements[1].textContent = icon;
-    if (elements[2]) elements[2].textContent = tempStr;
-    if (elements[3]) elements[3].textContent = icon;
-  } catch (err) {
-    console.warn("Weather fetch failed:", err);
-  }
+  // High-performance static replacements for your dynamic flake generator
+  const fK = (x, y) =>
+    `<line x1="${x - 3}" y1="${y}" x2="${x + 3}" y2="${y}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/><line x1="${x}" y1="${y - 3}" x2="${x}" y2="${y + 3}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/><line x1="${x - 2.1}" y1="${y - 2.1}" x2="${x + 2.1}" y2="${y + 2.1}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/><line x1="${x + 2.1}" y1="${y - 2.1}" x2="${x - 2.1}" y2="${y + 2.1}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/>`;
+
+  fetch(
+    "https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219&current_weather=true",
+  )
+    .then((r) => r.json())
+    .then(({ current_weather: { temperature, weathercode } }) => {
+      let s = "";
+      let desc = "";
+
+      switch (weathercode) {
+        case 0:
+          desc = "Clear sky";
+          s =
+            `<circle cx="16" cy="13" r="5.5" fill="#FBBF24"/>` +
+            `<line x1="21.5" y1="13.0" x2="25.0" y2="13.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.9" y1="16.9" x2="22.4" y2="19.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.0" y1="18.5" x2="16.0" y2="22.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="12.1" y1="16.9" x2="9.6" y2="19.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="10.5" y1="13.0" x2="7.0" y2="13.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="12.1" y1="9.1" x2="9.6" y2="6.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.0" y1="7.5" x2="16.0" y2="4.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.9" y1="9.1" x2="22.4" y2="6.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>`;
+          break;
+        case 1:
+          desc = "Mainly clear";
+          s =
+            `<circle cx="20" cy="10" r="5" fill="#FBBF24"/><line x1="25.0" y1="10.0" x2="28.0" y2="10.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.5" y1="13.5" x2="25.6" y2="15.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="20.0" y1="15.0" x2="20.0" y2="18.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.5" y1="13.5" x2="14.4" y2="15.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="15.0" y1="10.0" x2="12.0" y2="10.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.5" y1="6.5" x2="14.4" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="20.0" y1="5.0" x2="20.0" y2="2.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.5" y1="6.5" x2="25.6" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            clSml(clL);
+          break;
+        case 2:
+          desc = "Partly cloudy";
+          s =
+            `<circle cx="23" cy="9" r="4.5" fill="#FBBF24"/><line x1="27.5" y1="9.0" x2="30.0" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="26.2" y1="12.2" x2="28.0" y2="14.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.0" y1="13.5" x2="23.0" y2="16.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.8" y1="12.2" x2="18.0" y2="14.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.5" y1="9.0" x2="16.0" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.8" y1="5.8" x2="18.0" y2="4.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.0" y1="4.5" x2="23.0" y2="2.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="26.2" y1="5.8" x2="28.0" y2="4.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            clBig(clL);
+          break;
+        case 45:
+          desc = "Foggy";
+          s = `<line x1="4" y1="11" x2="28" y2="11" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="16" x2="26" y2="16" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/><line x1="9" y1="21" x2="23" y2="21" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>`;
+          break;
+        case 48:
+          desc = "Depositing rime fog";
+          s = `<line x1="4" y1="11" x2="28" y2="11" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="16" x2="26" y2="16" stroke="${iceC}" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/><line x1="9" y1="21" x2="23" y2="21" stroke="${iceC}" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>`;
+          break;
+        case 51:
+          desc = "Light drizzle";
+          s =
+            clBig(clL) +
+            `<ellipse cx="10" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="16" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="22" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/>`;
+          break;
+        case 61:
+        case 53:
+          desc = weathercode === 61 ? "Slight rain" : "Moderate drizzle";
+          s =
+            clBig(clM) +
+            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/>`;
+          break;
+        case 55:
+          desc = "Dense drizzle";
+          s =
+            clBig(clM) +
+            `<ellipse cx="7" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="11" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="15" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="19" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/>`;
+          break;
+        case 56:
+          desc = "Light freezing drizzle";
+          s =
+            clBig(clL) +
+            `<ellipse cx="10" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="16" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="22" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/>`;
+          break;
+        case 66:
+        case 57:
+          desc =
+            weathercode === 66
+              ? "Light freezing rain"
+              : "Dense freezing drizzle";
+          s =
+            clBig(clD) +
+            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/>`;
+          break;
+        case 63:
+          desc = "Moderate rain";
+          s =
+            clBig(clD) +
+            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/>`;
+          break;
+        case 65:
+          desc = "Heavy rain";
+          s =
+            clBig(clS) +
+            `<ellipse cx="7" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="11" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="15" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="19" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="23" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/>`;
+          break;
+        case 67:
+          desc = "Heavy freezing rain";
+          s =
+            clBig(clS) +
+            `<ellipse cx="7" cy="25" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="11" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="15" cy="25" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="19" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="23" cy="25" rx="1.5" ry="2.5" fill="${iceC}"/>`;
+          break;
+        case 71:
+          desc = "Slight snowfall";
+          s = clBig(clL) + fK(10, 28) + fK(17, 28) + fK(24, 28);
+          break;
+        case 73:
+          desc = "Moderate snowfall";
+          s = clBig(clM) + fK(8, 28) + fK(14, 28) + fK(20, 28) + fK(26, 28);
+          break;
+        case 75:
+          desc = "Heavy snowfall";
+          s = clBig(clD) + fK(7, 27) + fK(14, 28) + fK(21, 27);
+          break;
+        case 77:
+          desc = "Snow grains";
+          s =
+            clBig(clM) +
+            `<circle cx="10" cy="28" r="2.5" fill="${snowC}"/><circle cx="16" cy="28" r="2.5" fill="${snowC}"/><circle cx="22" cy="28" r="2.5" fill="${snowC}"/>`;
+          break;
+        case 80:
+          desc = "Slight rain showers";
+          s =
+            `<circle cx="21" cy="9" r="4" fill="#FBBF24"/><line x1="25.0" y1="9.0" x2="27.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="11.8" x2="25.6" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="13.0" x2="21.0" y2="15.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="11.8" x2="16.4" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="17.0" y1="9.0" x2="14.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="6.2" x2="16.4" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="5.0" x2="21.0" y2="2.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="6.2" x2="25.6" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            clSml(clM) +
+            `<ellipse cx="9" cy="28" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="14" cy="29" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="19" cy="28" rx="1.5" ry="2.5" fill="${rainC}"/>`;
+          break;
+        case 81:
+          desc = "Moderate rain showers";
+          s =
+            clBig(clD) +
+            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/>`;
+          break;
+        case 82:
+          desc = "Violent rain showers";
+          s =
+            clBig(clS) +
+            `<ellipse cx="6" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="10" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="14" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="18" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="22" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/>`;
+          break;
+        case 85:
+          desc = "Slight snow showers";
+          s =
+            `<circle cx="21" cy="9" r="4" fill="#FBBF24"/><line x1="25.0" y1="9.0" x2="27.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="11.8" x2="25.6" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="13.0" x2="21.0" y2="15.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="11.8" x2="16.4" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="17.0" y1="9.0" x2="14.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="6.2" x2="16.4" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="5.0" x2="21.0" y2="2.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="6.2" x2="25.6" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            clSml(clL) +
+            fK(9, 29) +
+            fK(17, 29);
+          break;
+        case 86:
+          desc = "Heavy snow showers";
+          s = clBig(clD) + fK(8, 28) + fK(15, 28) + fK(22, 28);
+          break;
+        case 95:
+          desc = "Thunderstorm";
+          s = clBig(clS) + bolt();
+          break;
+        case 96:
+          desc = "Thunderstorm with slight hail";
+          s =
+            clBig(clS) +
+            bolt(12, 14) +
+            `<circle cx="23" cy="22" r="2.5" fill="${hailC}" stroke="${iceC}" stroke-width="1"/><circle cx="23" cy="28" r="2.5" fill="${hailC}" stroke="${iceC}" stroke-width="1"/>`;
+          break;
+        case 99:
+          desc = "Thunderstorm with heavy hail";
+          s =
+            clBig(clS) +
+            bolt(12, 14) +
+            `<circle cx="22" cy="21" r="3" fill="${hailC}" stroke="${iceC}" stroke-width="1.5"/><circle cx="22" cy="28" r="3" fill="${hailC}" stroke="${iceC}" stroke-width="1.5"/>`;
+          break;
+        default:
+          desc = "Cloudy";
+          s = clBig(clM);
+      }
+
+      const finalSvg = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+      const tempStr = `${Math.round(temperature)}°`;
+
+      const t1 = document.getElementById("temp"),
+        t2 = document.getElementById("temp-desktop"),
+        i1 = document.getElementById("weather-icon"),
+        i2 = document.getElementById("weather-icon-desktop"),
+        d1 = document.getElementById("weather-description"),
+        d2 = document.getElementById("weather-description-desktop");
+
+      if (t1) t1.textContent = tempStr;
+      if (t2) t2.textContent = tempStr;
+      if (i1) i1.innerHTML = finalSvg;
+      if (i2) i2.innerHTML = finalSvg;
+      if (d1) {
+        d1.textContent = desc;
+        d1.style.opacity = "0.45";
+      }
+      if (d2) {
+        d2.textContent = desc;
+        d2.style.opacity = "0.45";
+      }
+    })
+    .catch(() => {});
 }
 
 /* ── SIDEBAR ──────────────────────────────────────────────── */
@@ -424,8 +645,12 @@ function setupEventDelegation() {
     }
   };
 
-  document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
-  document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
+  document
+    .getElementById("task-list")
+    ?.addEventListener("click", handleTaskListClick);
+  document
+    .getElementById("task-list-mobile")
+    ?.addEventListener("click", handleTaskListClick);
 
   // Task action triggers (Fixes CSP issue)
   document.addEventListener("click", (e) => {
@@ -666,7 +891,7 @@ function shakeinput() {
 /* ── BACKGROUND ───────────────────────────────────────────── */
 function setupBg() {
   const savedBg = safeGet("gx_bg");
-  
+
   if (typeof savedBg === "string" && savedBg.startsWith("data:image")) {
     applyBg(savedBg);
   } else {
@@ -717,7 +942,7 @@ function applyBg(dataUrl) {
   const thumb = document.getElementById("wallpaper-thumb");
 
   if (bg) bg.style.backgroundImage = `url(${dataUrl})`;
-  if (base) base.style.opacity = "0"; 
+  if (base) base.style.opacity = "0";
   if (thumb) thumb.style.backgroundImage = `url(${dataUrl})`;
 
   state.hasBg = true;
@@ -734,7 +959,7 @@ function clearBg() {
   const fallbackUrl = "url('background-image.png')";
 
   if (bg) bg.style.backgroundImage = fallbackUrl;
-  if (base) base.style.opacity = "0"; 
+  if (base) base.style.opacity = "0";
   if (thumb) thumb.style.backgroundImage = fallbackUrl;
 
   state.hasBg = false;
@@ -827,8 +1052,12 @@ function setupEventDelegation() {
     }
   };
 
-  document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
-  document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
+  document
+    .getElementById("task-list")
+    ?.addEventListener("click", handleTaskListClick);
+  document
+    .getElementById("task-list-mobile")
+    ?.addEventListener("click", handleTaskListClick);
 
   // Global document click listener (Catches duplicate/multiple buttons cleanly)
   document.addEventListener("click", (e) => {

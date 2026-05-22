@@ -1390,6 +1390,22 @@ header > div {
   transform: none !important;
 }
 
+/* ── TIME TEXT SETTINGS ─────────────────────────────────── */
+#h-m, #h-m-desktop {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  display: inline-block;
+  text-align: left;
+}
+
+#seconds, #seconds-desktop {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  display: inline-block;
+  min-width: 2ch;
+  text-align: left;
+}
+
 /* ── NOISE TEXTURE ────────────────────────────────────────── */
 
 .noise {
@@ -1985,7 +2001,7 @@ header > div {
   font-weight: 800;
   line-height: 0.92;
   letter-spacing: -0.06em;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.65);
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

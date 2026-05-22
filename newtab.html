@@ -16,7 +16,9 @@
     />
     <link rel="icon" type="image/png" href="icon/icon.png" />
   </head>
-  <body class="min-h-screen text-white overflow-y-auto custom-scrollbar font-jakarta">
+  <body
+    class="min-h-screen text-white overflow-y-auto custom-scrollbar font-jakarta"
+  >
     <div
       id="main-bg"
       class="fixed inset-0 bg-cover bg-center z-0 transition-all duration-1000 pointer-events-none"
@@ -47,7 +49,7 @@
             class="glass-card px-4 py-4 rounded-3xl w-full flex items-center justify-center flex-col gap-1"
           >
             <div
-              class="text-3xl font-extrabold leading-none flex items-baseline gap-1"
+              class="text-3xl font-extrabold leading-none flex items-baseline gap-1 min-w-[5.5rem]"
             >
               <span id="h-m">00:00</span>
               <span id="seconds" class="text-xs opacity-30">00</span>
@@ -62,13 +64,38 @@
 
           <div
             id="weather-widget"
-            class="glass-card px-4 py-4 rounded-3xl flex items-center justify-evenly w-full"
+            class="glass-card px-4 py-4 rounded-3xl flex flex-col items-center justify-center gap-3 w-full"
           >
-            <div class="text-right items-center">
-              <div id="temp" class="text-lg font-bold">--°</div>
-              <div class="text-[8px] opacity-40 uppercase">Sofia</div>
+            <!-- Top -->
+            <div class="flex items-center justify-center gap-3 w-full">
+              <!-- Icon -->
+              <div id="weather-icon" class="text-4xl leading-none shrink-0">
+                --
+              </div>
+
+              <!-- Temp + City -->
+              <div class="flex flex-col justify-end leading-none">
+                <div class="flex items-baseline gap-1">
+                  <div id="temp" class="text-3xl font-black tracking-tight">
+                    --°
+                  </div>
+
+                  <div
+                    class="text-[9px] font-semibold uppercase tracking-[0.2em] opacity-40"
+                  >
+                    Sofia
+                  </div>
+                </div>
+              </div>
             </div>
-            <div id="weather-icon" class="text-2xl">☁️</div>
+
+            <!-- Weather description -->
+            <div
+              id="weather-description"
+              class="w-full text-center text-[11px] font-semibold opacity-70 bg-white/5 rounded-2xl py-2 px-3 truncate"
+            >
+              Loading weather...
+            </div>
           </div>
         </div>
 
@@ -100,7 +127,7 @@
           class="glass-card px-7 py-5 rounded-3xl w-[320px] items-center flex flex-col gap-1"
         >
           <div
-            class="text-5xl font-extrabold leading-none flex items-baseline gap-1"
+            class="text-5xl font-extrabold leading-none flex items-baseline gap-1 min-w-[8.5rem]"
           >
             <span id="h-m-desktop">00:00</span>
             <span id="seconds-desktop" class="text-lg opacity-30">00</span>
@@ -115,14 +142,41 @@
 
         <div
           id="weather-widget-desktop"
-          class="glass-card px-6 py-4 rounded-3xl flex items-center gap-4 w-[240px] items-center justify-center"
+          class="glass-card px-5 py-4 rounded-3xl flex flex-col items-center gap-3 w-[240px]"
         >
-          <div class="text-right">
-            <div id="temp-desktop" class="text-2xl font-bold">--°</div>
-            <div class="text-[8px] uppercase opacity-40">Sofia</div>
+          <!-- Top row -->
+          <div class="flex items-center justify-center gap-4 w-full">
+            <!-- Weather icon -->
+            <div
+              id="weather-icon-desktop"
+              class="text-5xl leading-none shrink-0"
+            >
+              --
+            </div>
+
+            <!-- Temp + City -->
+            <div
+              class="flex flex-row gap-2 leading-none justify-center items-baseline"
+            >
+              <div id="temp-desktop" class="text-5xl font-black tracking-tight">
+                --°
+              </div>
+
+              <div
+                class="text-end text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40"
+              >
+                Sofia
+              </div>
+            </div>
           </div>
 
-          <div id="weather-icon-desktop" class="text-3xl">☁️</div>
+          <!-- Weather condition -->
+          <div
+            id="weather-description-desktop"
+            class="w-full text-center opacity-75 bg-white/5 rounded-2xl py-2 px-3"
+          >
+            <span class="text-sm font-medium opacity-30">Loading weather...</span>
+          </div>
         </div>
       </div>
     </header>
