@@ -2,7 +2,7 @@
    ELITE NEW TAB — script.js (Optimized for Low Memory Usage)
 ═════════════════════════════════════════════════════════════ */
 
-const MAX_BOOKMARKS = 8;
+const MAX_BOOKMARKS = 12;
 
 function safeGet(key) {
   const v = localStorage.getItem(key);
