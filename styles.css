@@ -1351,6 +1351,18 @@ video {
   --glow: rgba(168, 85, 247, 0.18);
 }
 
+[data-theme="green"] {
+  --primary: #16a34a;
+  --primary-rgb: 22, 163, 74;
+  --glow: rgba(22, 163, 74, 0.18);
+}
+
+[data-theme="orange"] {
+  --primary: #fb923c;
+  --primary-rgb: 251, 146, 60;
+  --glow: rgba(251, 146, 60, 0.18);
+}
+
 [data-theme="black"] {
   --primary: #000000;
   --primary-rgb: 44, 44, 44;
@@ -2034,11 +2046,11 @@ header > div {
   -moz-osx-font-smoothing: grayscale;
 
   text-shadow:
-    0 0 6px color-mix(in srgb, var(--primary) 35%, transparent),
+    0 0 6px color-mix(in srgb, var(--primary) 30%, transparent),
     0 0 12px color-mix(in srgb, var(--primary) 25%, transparent),
-    0 0 24px color-mix(in srgb, var(--primary) 18%, transparent),
-    0 0 48px color-mix(in srgb, var(--primary) 12%, transparent),
-    0 0 72px color-mix(in srgb, var(--primary) 8%, transparent);
+    0 0 24px color-mix(in srgb, var(--primary) 20%, transparent),
+    0 0 48px color-mix(in srgb, var(--primary) 15%, transparent),
+    0 0 72px color-mix(in srgb, var(--primary) 10%, transparent);
 
   animation: fade-in 1s ease;
   margin: 0;

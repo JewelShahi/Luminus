@@ -243,7 +243,8 @@ const slots = [
     min: 0,
     max: 3,
     greet: "Working late",
-    focus: "Finishing up, or just getting started? Either way, lets make it count.",
+    focus:
+      "Finishing up, or just getting started? Either way, lets make it count.",
   },
   {
     min: 3,
@@ -555,10 +556,12 @@ function getWeather() {
       if (d1) {
         d1.textContent = desc;
         d1.style.opacity = "0.45";
+        d1.style.fontSize = "13px";
       }
       if (d2) {
         d2.textContent = desc;
         d2.style.opacity = "0.45";
+        d2.style.fontSize = "13px";
       }
     })
     .catch(() => {});

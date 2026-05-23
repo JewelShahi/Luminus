@@ -91,7 +91,7 @@
             <!-- Weather description -->
             <div
               id="weather-description"
-              class="w-full text-center text-[11px] font-semibold opacity-70 bg-white/5 rounded-2xl py-2 px-3 truncate"
+              class="w-full text-center !text-[10px] font-semibold opacity-70 bg-white/5 rounded-2xl py-2 px-3 truncate"
             >
               Loading weather...
             </div>
@@ -174,7 +174,9 @@
             id="weather-description-desktop"
             class="w-full text-center opacity-75 bg-white/5 rounded-2xl py-2 px-3"
           >
-            <span class="text-sm font-medium opacity-30">Loading weather...</span>
+            <span class="text-sm font-medium opacity-30"
+              >Loading weather...</span
+            >
           </div>
         </div>
       </div>
@@ -337,16 +339,33 @@
           <h3 class="sidebar-label">Interface Skin</h3>
           <div class="grid grid-cols-2 gap-3">
             <button class="theme-btn" data-theme-btn="blue">
-              <span class="theme-dot bg-blue-500"></span>Cobalt
+              <span class="theme-dot" style="background: #3b82f6"></span>Azure
             </button>
+
             <button class="theme-btn" data-theme-btn="red">
-              <span class="theme-dot bg-red-500"></span>GX Red
+              <span class="theme-dot" style="background: #ef4444"></span>Crimson
+              GX
             </button>
+
             <button class="theme-btn" data-theme-btn="purple">
-              <span class="theme-dot bg-purple-500"></span>Neon
+              <span class="theme-dot" style="background: #a855f7"></span>Neon
+              Pulse
             </button>
+
+            <button class="theme-btn" data-theme-btn="green">
+              <span class="theme-dot" style="background: #16a34a"></span>Viper
+            </button>
+
+            <button class="theme-btn" data-theme-btn="orange">
+              <span class="theme-dot" style="background: #fb923c"></span>Inferno
+            </button>
+            
             <button class="theme-btn" data-theme-btn="black">
-              <span class="theme-dot bg-white/60"></span>Void
+              <span
+                class="theme-dot"
+                style="background: rgba(255, 255, 255, 0.6)"
+              ></span
+              >Obsidian
             </button>
           </div>
         </section>
@@ -518,7 +537,7 @@
                 type="range"
                 min="0"
                 max="0.9"
-                step="0.05"
+                step="0.01"
                 class="w-full accent-primary h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
               />
             </div>
@@ -535,7 +554,7 @@
                 type="range"
                 min="0"
                 max="1"
-                step="0.05"
+                step="0.01"
                 class="w-full accent-primary h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
               />
             </div>
