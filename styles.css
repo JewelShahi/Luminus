@@ -1409,14 +1409,7 @@ header > div {
 #time-widget,
 #time-widget-desktop {
   font-family:
-    "SF Mono",
-    SF Mono,
-    SF Mono Regular,
-    Consolas,
-    "Liberation Mono",
-    Menlo,
-    Courier,
-    monospace;
+    "JetBrains Mono", SF Mono, SF Mono Regular, Consolas, "Liberation Mono";
 }
 
 #weather-widget {
