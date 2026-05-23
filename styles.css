@@ -2000,7 +2000,7 @@ header > div {
   font-size: clamp(3.5rem, 7vw, 6.5rem);
   font-weight: 800;
   line-height: 0.92;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.02em;
   color: rgba(255, 255, 255, 0.65);
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
