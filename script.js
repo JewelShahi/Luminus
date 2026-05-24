@@ -390,18 +390,19 @@ function setupAmbientLight() {
 
 /* ── WEATHER ──────────────────────────────────────────────── */
 function getWeather() {
-  const iceC = "#67E8F9",
-    rainC = "#60A5FA",
-    rainH = "#3B82F6",
-    snowC = "#BAE6FD",
-    hailC = "#E0F2FE";
-  const clL = "#D1DCE8",
-    clM = "#8FA5B8",
-    clD = "#546070",
-    clS = "#2B3845",
-    fogC = "#9CA3AF";
+  // ── palettes ───────────────────────────────────────────────
+  const iceC = "#67E8F9", rainC = "#60A5FA", rainH = "#3B82F6",
+    snowC = "#BAE6FD", hailC = "#E0F2FE";
+  const clL = "#D1DCE8", clM = "#8FA5B8", clD = "#546070", clS = "#2B3845";
+  const fogC = "#9CA3AF";
 
-  // Static sub-components built once manually instead of dynamically mapping arrays
+  // Night palette
+  const clLN = "#3A4D60", clMN = "#2C3A4A", clDN = "#1E2D3D", clSN = "#162231";
+  const fogCN = "#4B5563";
+  const moonFill = "#E2E8F0";
+  const moonShadow = "#0F172A";
+
+  // ── shared sub-components ──────────────────────────────────
   const clBig = (f) =>
     `<circle cx="16" cy="14" r="7" fill="${f}"/><circle cx="10" cy="18" r="5" fill="${f}"/><circle cx="22" cy="18" r="5" fill="${f}"/><rect x="5" y="18" width="22" height="5" fill="${f}"/>`;
   const clSml = (f) =>
@@ -409,196 +410,193 @@ function getWeather() {
   const bolt = (bx = 14, by = 14) =>
     `<polygon points="${bx + 3},${by} ${bx},${by + 7} ${bx + 2.5},${by + 7} ${bx - 1},${by + 15} ${bx + 6},${by + 6} ${bx + 3},${by + 6}" fill="#FCD34D"/>`;
 
-  // High-performance static replacements for your dynamic flake generator
+  // ── sun ────────────────────────────────────────────────────
+  const sunFull = (cx, cy, r, sc) =>
+    `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FBBF24"/>` +
+    `<line x1="${cx + r}" y1="${cy}" x2="${cx + r + 3}" y2="${cy}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx + r - 1.6}" y1="${cy + 1.6}" x2="${cx + r + 0.8}" y2="${cy + 4.0}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx}" y1="${cy + r}" x2="${cx}" y2="${cy + r + 3}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx - r + 1.6}" y1="${cy + 1.6}" x2="${cx - r - 0.8}" y2="${cy + 4.0}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx - r}" y1="${cy}" x2="${cx - r - 3}" y2="${cy}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx - r + 1.6}" y1="${cy - 1.6}" x2="${cx - r - 0.8}" y2="${cy - 4.0}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx}" y1="${cy - r}" x2="${cx}" y2="${cy - r - 3}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>` +
+    `<line x1="${cx + r - 1.6}" y1="${cy - 1.6}" x2="${cx + r + 0.8}" y2="${cy - 4.0}" stroke="${sc}" stroke-width="2" stroke-linecap="round"/>`;
+
+  // ── moon + stars ───────────────────────────────────────────
+  const moonStars = (cx, cy, r) => {
+    const sx = cx - 12, sy = cy - 4;
+    return [
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${moonFill}"/>`,
+      `<circle cx="${cx + r * 0.45}" cy="${cy - r * 0.25}" r="${r * 0.78}" fill="${moonShadow}"/>`,
+      `<circle cx="${sx}"   cy="${sy}"   r="1.1" fill="${moonFill}" opacity="0.9"/>`,
+      `<circle cx="${sx + 5}" cy="${sy - 4}" r="0.8" fill="${moonFill}" opacity="0.65"/>`,
+      `<circle cx="${sx + 2}" cy="${sy + 3}" r="0.65" fill="${moonFill}" opacity="0.45"/>`
+    ].join('');
+  };
+
+  // ── snowflake ──────────────────────────────────────────────
   const fK = (x, y) =>
-    `<line x1="${x - 3}" y1="${y}" x2="${x + 3}" y2="${y}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/><line x1="${x}" y1="${y - 3}" x2="${x}" y2="${y + 3}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/><line x1="${x - 2.1}" y1="${y - 2.1}" x2="${x + 2.1}" y2="${y + 2.1}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/><line x1="${x + 2.1}" y1="${y - 2.1}" x2="${x - 2.1}" y2="${y + 2.1}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/>`;
+    `<line x1="${x - 3}" y1="${y}" x2="${x + 3}" y2="${y}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/>` +
+    `<line x1="${x}" y1="${y - 3}" x2="${x}" y2="${y + 3}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/>` +
+    `<line x1="${x - 2.1}" y1="${y - 2.1}" x2="${x + 2.1}" y2="${y + 2.1}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/>` +
+    `<line x1="${x + 2.1}" y1="${y - 2.1}" x2="${x - 2.1}" y2="${y + 2.1}" stroke="${snowC}" stroke-width="1.5" stroke-linecap="round"/>`;
 
-  fetch(
-    "https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219&current_weather=true",
-  )
-    .then((r) => r.json())
-    .then(({ current_weather: { temperature, weathercode } }) => {
-      let s = "";
-      let desc = "";
+  // ── raindrop ───────────────────────────────────────────────
+  const drop = (x, y, fill) => `<ellipse cx="${x}" cy="${y}" rx="1.5" ry="2.5" fill="${fill}"/>`;
 
-      switch (weathercode) {
-        case 0:
-          desc = "Clear sky";
-          s =
-            `<circle cx="16" cy="13" r="5.5" fill="#FBBF24"/>` +
-            `<line x1="21.5" y1="13.0" x2="25.0" y2="13.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.9" y1="16.9" x2="22.4" y2="19.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.0" y1="18.5" x2="16.0" y2="22.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="12.1" y1="16.9" x2="9.6" y2="19.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="10.5" y1="13.0" x2="7.0" y2="13.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="12.1" y1="9.1" x2="9.6" y2="6.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.0" y1="7.5" x2="16.0" y2="4.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.9" y1="9.1" x2="22.4" y2="6.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>`;
-          break;
-        case 1:
-          desc = "Mainly clear";
-          s =
-            `<circle cx="20" cy="10" r="5" fill="#FBBF24"/><line x1="25.0" y1="10.0" x2="28.0" y2="10.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.5" y1="13.5" x2="25.6" y2="15.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="20.0" y1="15.0" x2="20.0" y2="18.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.5" y1="13.5" x2="14.4" y2="15.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="15.0" y1="10.0" x2="12.0" y2="10.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="16.5" y1="6.5" x2="14.4" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="20.0" y1="5.0" x2="20.0" y2="2.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.5" y1="6.5" x2="25.6" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
-            clSml(clL);
-          break;
-        case 2:
-          desc = "Partly cloudy";
-          s =
-            `<circle cx="23" cy="9" r="4.5" fill="#FBBF24"/><line x1="27.5" y1="9.0" x2="30.0" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="26.2" y1="12.2" x2="28.0" y2="14.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.0" y1="13.5" x2="23.0" y2="16.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.8" y1="12.2" x2="18.0" y2="14.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.5" y1="9.0" x2="16.0" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="19.8" y1="5.8" x2="18.0" y2="4.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.0" y1="4.5" x2="23.0" y2="2.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="26.2" y1="5.8" x2="28.0" y2="4.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
-            clBig(clL);
-          break;
-        case 45:
-          desc = "Foggy";
-          s = `<line x1="4" y1="11" x2="28" y2="11" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="16" x2="26" y2="16" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/><line x1="9" y1="21" x2="23" y2="21" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>`;
-          break;
-        case 48:
-          desc = "Depositing rime fog";
-          s = `<line x1="4" y1="11" x2="28" y2="11" stroke="${fogC}" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="16" x2="26" y2="16" stroke="${iceC}" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/><line x1="9" y1="21" x2="23" y2="21" stroke="${iceC}" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>`;
-          break;
-        case 51:
-          desc = "Light drizzle";
-          s =
-            clBig(clL) +
-            `<ellipse cx="10" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="16" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="22" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/>`;
-          break;
-        case 61:
-        case 53:
-          desc = weathercode === 61 ? "Slight rain" : "Moderate drizzle";
-          s =
-            clBig(clM) +
-            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/>`;
-          break;
-        case 55:
-          desc = "Dense drizzle";
-          s =
-            clBig(clM) +
-            `<ellipse cx="7" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="11" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="15" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="19" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/>`;
-          break;
-        case 56:
-          desc = "Light freezing drizzle";
-          s =
-            clBig(clL) +
-            `<ellipse cx="10" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="16" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="22" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/>`;
-          break;
-        case 66:
-        case 57:
-          desc =
-            weathercode === 66
-              ? "Light freezing rain"
-              : "Dense freezing drizzle";
-          s =
-            clBig(clD) +
-            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/>`;
-          break;
-        case 63:
-          desc = "Moderate rain";
-          s =
-            clBig(clD) +
-            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/>`;
-          break;
-        case 65:
-          desc = "Heavy rain";
-          s =
-            clBig(clS) +
-            `<ellipse cx="7" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="11" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="15" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="19" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="23" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/>`;
-          break;
-        case 67:
-          desc = "Heavy freezing rain";
-          s =
-            clBig(clS) +
-            `<ellipse cx="7" cy="25" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="11" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="15" cy="25" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="19" cy="27" rx="1.5" ry="2.5" fill="${iceC}"/><ellipse cx="23" cy="25" rx="1.5" ry="2.5" fill="${iceC}"/>`;
-          break;
-        case 71:
-          desc = "Slight snowfall";
-          s = clBig(clL) + fK(10, 28) + fK(17, 28) + fK(24, 28);
-          break;
-        case 73:
-          desc = "Moderate snowfall";
-          s = clBig(clM) + fK(8, 28) + fK(14, 28) + fK(20, 28) + fK(26, 28);
-          break;
-        case 75:
-          desc = "Heavy snowfall";
-          s = clBig(clD) + fK(7, 27) + fK(14, 28) + fK(21, 27);
-          break;
-        case 77:
-          desc = "Snow grains";
-          s =
-            clBig(clM) +
-            `<circle cx="10" cy="28" r="2.5" fill="${snowC}"/><circle cx="16" cy="28" r="2.5" fill="${snowC}"/><circle cx="22" cy="28" r="2.5" fill="${snowC}"/>`;
-          break;
-        case 80:
-          desc = "Slight rain showers";
-          s =
-            `<circle cx="21" cy="9" r="4" fill="#FBBF24"/><line x1="25.0" y1="9.0" x2="27.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="11.8" x2="25.6" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="13.0" x2="21.0" y2="15.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="11.8" x2="16.4" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="17.0" y1="9.0" x2="14.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="6.2" x2="16.4" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="5.0" x2="21.0" y2="2.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="6.2" x2="25.6" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
-            clSml(clM) +
-            `<ellipse cx="9" cy="28" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="14" cy="29" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="19" cy="28" rx="1.5" ry="2.5" fill="${rainC}"/>`;
-          break;
-        case 81:
-          desc = "Moderate rain showers";
-          s =
-            clBig(clD) +
-            `<ellipse cx="8" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="13" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="18" cy="26" rx="1.5" ry="2.5" fill="${rainC}"/><ellipse cx="23" cy="27" rx="1.5" ry="2.5" fill="${rainC}"/>`;
-          break;
-        case 82:
-          desc = "Violent rain showers";
-          s =
-            clBig(clS) +
-            `<ellipse cx="6" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="10" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="14" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="18" cy="27" rx="1.5" ry="2.5" fill="${rainH}"/><ellipse cx="22" cy="25" rx="1.5" ry="2.5" fill="${rainH}"/>`;
-          break;
-        case 85:
-          desc = "Slight snow showers";
-          s =
-            `<circle cx="21" cy="9" r="4" fill="#FBBF24"/><line x1="25.0" y1="9.0" x2="27.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="11.8" x2="25.6" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="13.0" x2="21.0" y2="15.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="11.8" x2="16.4" y2="13.6" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="17.0" y1="9.0" x2="14.5" y2="9.0" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="18.2" y1="6.2" x2="16.4" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="21.0" y1="5.0" x2="21.0" y2="2.5" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/><line x1="23.8" y1="6.2" x2="25.6" y2="4.4" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
-            clSml(clL) +
-            fK(9, 29) +
-            fK(17, 29);
-          break;
-        case 86:
-          desc = "Heavy snow showers";
-          s = clBig(clD) + fK(8, 28) + fK(15, 28) + fK(22, 28);
-          break;
-        case 95:
-          desc = "Thunderstorm";
-          s = clBig(clS) + bolt();
-          break;
-        case 96:
-          desc = "Thunderstorm with slight hail";
-          s =
-            clBig(clS) +
-            bolt(12, 14) +
-            `<circle cx="23" cy="22" r="2.5" fill="${hailC}" stroke="${iceC}" stroke-width="1"/><circle cx="23" cy="28" r="2.5" fill="${hailC}" stroke="${iceC}" stroke-width="1"/>`;
-          break;
-        case 99:
-          desc = "Thunderstorm with heavy hail";
-          s =
-            clBig(clS) +
-            bolt(12, 14) +
-            `<circle cx="22" cy="21" r="3" fill="${hailC}" stroke="${iceC}" stroke-width="1.5"/><circle cx="22" cy="28" r="3" fill="${hailC}" stroke="${iceC}" stroke-width="1.5"/>`;
-          break;
-        default:
-          desc = "Cloudy";
-          s = clBig(clM);
-      }
+  // ── defaults ───────────────────────────────────────────────
+  const DEF_LAT = 42.6977;
+  const DEF_LON = 23.3219;
 
-      const finalSvg = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
-      const tempStr = `${Math.round(temperature)}°`;
+  // ── core fetch/render (receives final lat/lon) ─────────────
+  function getCity(lat, lon) {
+    return fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        return (
+          data.address.city ||
+          data.address.town ||
+          data.address.village ||
+          data.address.state ||
+          "Unknown location"
+        );
+      });
+  }
 
-      const t1 = document.getElementById("temp"),
-        t2 = document.getElementById("temp-desktop"),
-        i1 = document.getElementById("weather-icon"),
-        i2 = document.getElementById("weather-icon-desktop"),
-        d1 = document.getElementById("weather-description"),
-        d2 = document.getElementById("weather-description-desktop");
+  function fetchAndRender(lat, lon) {
 
-      if (t1) t1.textContent = tempStr;
-      if (t2) t2.textContent = tempStr;
-      if (i1) i1.innerHTML = finalSvg;
-      if (i2) i2.innerHTML = finalSvg;
-      if (d1) {
-        d1.textContent = desc;
-        d1.style.opacity = "0.45";
-        d1.style.fontSize = "13px";
-      }
-      if (d2) {
-        d2.textContent = desc;
-        d2.style.opacity = "0.45";
-        d2.style.fontSize = "13px";
-      }
-    })
-    .catch(() => { });
+    Promise.all([
+
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+      ).then((r) => r.json()),
+
+      getCity(lat, lon)
+
+    ])
+
+      .then(([weatherData, city]) => {
+
+        const {
+          current_weather: { temperature, weathercode, is_day }
+        } = weatherData;
+
+        const night = !is_day;
+
+        // cloud colours
+        const cL = night ? clLN : clL;
+        const cM = night ? clMN : clM;
+        const cD = night ? clDN : clD;
+        const cS = night ? clSN : clS;
+        const fog = night ? fogCN : fogC;
+
+        let s = "", desc = "";
+
+        const sunOrMoon = (cx, cy, r) =>
+          night ? moonStars(cx, cy, r) : sunFull(cx, cy, r, "#FBBF24");
+
+        const sunOrMoonTiny = (cx, cy) =>
+          night
+            ? `<circle cx="${cx}" cy="${cy}" r="3.5" fill="${moonFill}"/><circle cx="${cx + 1.6}" cy="${cy - 0.9}" r="2.7" fill="${moonShadow}"/>`
+            : `<circle cx="${cx}" cy="${cy}" r="4" fill="#FBBF24"/>` +
+            `<line x1="${cx + 4}" y1="${cy}" x2="${cx + 6.5}" y2="${cy}" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            `<line x1="${cx - 4}" y1="${cy}" x2="${cx - 6.5}" y2="${cy}" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            `<line x1="${cx}" y1="${cy + 4}" x2="${cx}" y2="${cy + 6.5}" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>` +
+            `<line x1="${cx}" y1="${cy - 4}" x2="${cx}" y2="${cy - 6.5}" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>`;
+
+        switch (weathercode) {
+          case 0:
+            desc = "Clear sky";
+            s = night ? moonStars(16, 13, 5.5) : sunFull(16, 13, 5.5, "#FBBF24");
+            break;
+
+          case 1:
+            desc = "Mainly clear";
+            s = sunOrMoon(20, 10, 5) + clSml(cL);
+            break;
+
+          case 2:
+            desc = "Partly cloudy";
+            s = sunOrMoon(23, 9, 4.5) + clBig(cL);
+            break;
+
+          case 3:
+            desc = "Overcast";
+            s = clBig(cM);
+            break;
+
+          default:
+            desc = "Cloudy";
+            s = clBig(cM);
+        }
+
+        // night tint overlay
+        if (
+          night &&
+          [2, 3].includes(weathercode)
+        ) {
+          s =
+            `<rect x="0" y="0" width="32" height="32" fill="#0F172A" opacity="0.15" rx="4"/>` +
+            s;
+        }
+
+        const finalSvg =
+          `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+
+        const tempStr = `${Math.round(temperature)}°`;
+        const cityStr = city;
+
+        const c1 = document.getElementById("weather-city"),
+          c2 = document.getElementById("weather-city-desktop"),
+          t1 = document.getElementById("temp"),
+          t2 = document.getElementById("temp-desktop"),
+          i1 = document.getElementById("weather-icon"),
+          i2 = document.getElementById("weather-icon-desktop"),
+          d1 = document.getElementById("weather-description"),
+          d2 = document.getElementById("weather-description-desktop");
+
+        // city
+        if (c1) c1.textContent = cityStr;
+        if (c2) c2.textContent = cityStr;
+
+        // temperature
+        if (t1) t1.textContent = tempStr;
+        if (t2) t2.textContent = tempStr;
+
+        // icon
+        if (i1) i1.innerHTML = finalSvg;
+        if (i2) i2.innerHTML = finalSvg;
+
+        // description
+        if (d1) {
+          d1.textContent = desc;
+          d1.style.opacity = "0.45";
+          d1.style.fontSize = "13px";
+        }
+
+        if (d2) {
+          d2.textContent = desc;
+          d2.style.opacity = "0.45";
+          d2.style.fontSize = "13px";
+        }
+
+      })
+
+      .catch(() => { });
+  }
+
+  // ── geolocation with fast fallback ─────────────────────────
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => fetchAndRender(pos.coords.latitude, pos.coords.longitude),
+      () => fetchAndRender(DEF_LAT, DEF_LON),          // denied / error
+      { enableHighAccuracy: false, timeout: 6000 }        // quick, low-power
+    );
+  } else {
+    fetchAndRender(DEF_LAT, DEF_LON);                      // no API
+  }
 }
 
 /* ── SIDEBAR ──────────────────────────────────────────────── */
