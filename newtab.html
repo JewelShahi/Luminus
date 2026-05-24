@@ -437,7 +437,7 @@
           >
             Current Wallpaper
           </h5>
-          
+
           <label
             id="wallpaper-preview"
             class="wallpaper-drop group cursor-pointer relative block overflow-hidden"
@@ -605,6 +605,67 @@
     </div>
 
     <div id="sidebar-hover-zone"></div>
+
+    <!-- ── OFFLINE TOAST ──────────────────────────────────────── -->
+    <div id="offline-toast" role="alert" aria-live="assertive">
+      <div class="glass-card overflow-hidden" style="border-radius: 16px">
+        <div class="flex items-center gap-3 px-4 py-3.5">
+          <div
+            class="shrink-0 w-[34px] h-[34px] rounded-[10px] bg-red-500/10 flex items-center justify-center"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-red-400"
+              aria-hidden="true"
+            >
+              <line x1="1" y1="1" x2="23" y2="23" />
+              <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+              <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+              <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+              <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <line x1="12" y1="20" x2="12.01" y2="20" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-[11px] font-semibold uppercase tracking-[0.1em] text-red-400 leading-none mb-1"
+            >
+              No internet
+            </p>
+            <p class="text-[12px] opacity-50 leading-snug mt-2">
+              Weather &amp; search unavailable. Check your connection.
+            </p>
+          </div>
+          <button
+            id="offline-toast-close"
+            aria-label="Dismiss"
+            class="shrink-0 w-6 h-6 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-red-500/20 hover:text-red-400 transition-all duration-150"
+          >
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>

@@ -1409,13 +1409,12 @@ header > div {
 #time-widget,
 #time-widget-desktop,
 #full-time-widget {
-  font-family:
-    "SN Pro", sans, monospace;
+  font-family: "SN Pro", sans, monospace;
 }
 
-#weather-widget-desktop, #weather-widget {
-  font-family:
-    "SN Pro", sans, monospace;
+#weather-widget-desktop,
+#weather-widget {
+  font-family: "SN Pro", sans, monospace;
 }
 
 #weather-widget {
@@ -2065,6 +2064,39 @@ header > div {
   animation: pulse-soft 4s ease-in-out infinite;
 }
 
+/*── OFFLINE TOAST ──────────────────────────────────────────────────────*/
+
+#offline-toast {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-120%) scale(0.96);
+  transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#offline-toast.toast-show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+@media (min-width: 768px) {
+  #offline-toast {
+    left: 50%;
+    right: auto;
+    width: 380px;
+    transform: translateX(-50%) translateY(-120%) scale(0.96);
+  }
+
+  #offline-toast.toast-show {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
 /* ═══════════════════════════════════════════════════════
    RESPONSIVE LAYOUT
 ═══════════════════════════════════════════════════════ */

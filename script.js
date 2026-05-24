@@ -211,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyWallpaperEffects();
   initWidgetVisibility();
   setupEventDelegation();
+  initOfflineToast();
 });
 
 /* ── USERNAME ─────────────────────────────────────────────── */
@@ -1172,6 +1173,41 @@ function setupEventDelegation() {
   });
 
   document.getElementById("clear-bg-btn")?.addEventListener("click", clearBg);
+}
+
+/* ── OFFLINE TOAST ────────────────────────────────────────── */
+function initOfflineToast() {
+  const toast = document.getElementById("offline-toast");
+  if (!toast) return;
+
+  let dismissed = false;
+  let autoTimer = null;
+
+  function show() {
+    if (dismissed) return;
+    toast.classList.add("toast-show");
+    autoTimer = setTimeout(hide, 5000);
+  }
+
+  function hide() {
+    clearTimeout(autoTimer);
+    toast.classList.remove("toast-show");
+  }
+
+  document.getElementById("offline-toast-close")
+    ?.addEventListener("click", () => {
+      dismissed = true;
+      hide();
+    }, { passive: true });
+
+  window.addEventListener("offline", () => {
+    dismissed = false;
+    show();
+  }, { passive: true });
+
+  window.addEventListener("online", hide, { passive: true });
+
+  if (!navigator.onLine) show();
 }
 
 /* ── TEARDOWN CLEANUP ─────────────────────────────────────── */
