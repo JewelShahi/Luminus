@@ -191,6 +191,13 @@ function compressImage(dataUrl, maxWidth = 1920, quality = 0.7) {
 
 /* ── BOOT ─────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", () => {
+
+  const savedBg = safeGet("gx_bg");
+  if (savedBg) {
+    const bg = document.getElementById("main-bg");
+    if (bg) bg.style.backgroundImage = `url('${savedBg}')`;
+  }
+
   initClock();
   initGreeting();
   getWeather();
