@@ -9,6 +9,36 @@ function safeGet(key) {
   return v === null || v === "null" || v === "undefined" || v === "" ? null : v;
 }
 
+// 4K Wallpapers Directory Mapping
+const PRESET_WALLPAPERS = [
+  {
+    id: "gojo-1",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779652796/satoru-gojo-1-4k_v0thvc.jpg",
+  },
+  {
+    id: "gojo-2",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779652796/satoru-gojo-2-4k_t2ia0f.jpg",
+  },
+  {
+    id: "gojo-3",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779652901/gojo_eyes_rwqbsb.png",
+  },
+  {
+    id: "yuji-sukuna",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779654350/yuji-sukuna_a00hz4.jpg",
+  },
+  {
+    id: "liebe-black-clover",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779654342/liebe-black-clover_tkchnm.jpg",
+  },
+  { id: "default-bg", value: "backgrounds/background-image.png" },
+];
+
 /* ── State & Initial Boot Fallbacks ───────────────────────── */
 const state = {
   theme: safeGet("gx_theme") || "blue",
@@ -176,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupBg();
   initUsername();
   setupAmbientLight();
+  renderWallpaperButtons();
   initWallpaperControls();
   applyWallpaperEffects();
   initWidgetVisibility();
@@ -895,48 +926,68 @@ function shakeinput() {
 function setupBg() {
   const savedBg = safeGet("gx_bg");
 
-  if (typeof savedBg === "string" && savedBg.startsWith("data:image")) {
+  if (
+    typeof savedBg === "string" &&
+    (savedBg.startsWith("data:image") ||
+      savedBg.startsWith("backgrounds/") ||
+      savedBg.startsWith("http"))
+  ) {
     applyBg(savedBg);
   } else {
     clearBg();
   }
 
-  document.getElementById("bg-input")?.addEventListener("change", (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  document
+    .getElementById("custom-bg-input")
+    ?.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const rawUrl = ev.target.result;
-      if (typeof rawUrl !== "string" || !rawUrl.startsWith("data:image"))
-        return;
-
-      let dataUrl;
-      try {
-        dataUrl = await compressImage(rawUrl, 1920, 0.7);
-      } catch {
-        dataUrl = rawUrl;
-      }
-
-      applyBg(dataUrl);
-
-      try {
-        localStorage.setItem("gx_bg", dataUrl);
-        state.hasBg = true;
-      } catch (err) {
-        console.warn(
-          "Background image too large for localStorage storage.",
-          err,
+      const MAX_SIZE_MB = 4;
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        alert(
+          `Image is too large! Please choose an image smaller than ${MAX_SIZE_MB}MB.`,
         );
-        localStorage.removeItem("gx_bg");
+        e.target.value = "";
+        return;
       }
-    };
-    reader.readAsDataURL(file);
-  });
+
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const rawUrl = ev.target.result;
+        if (typeof rawUrl !== "string" || !rawUrl.startsWith("data:image"))
+          return;
+
+        let dataUrl;
+        try {
+          dataUrl = await compressImage(rawUrl, 1280, 0.6);
+        } catch {
+          dataUrl = rawUrl;
+        }
+
+        applyBg(dataUrl);
+
+        try {
+          localStorage.setItem("gx_bg", dataUrl);
+          state.hasBg = true;
+        } catch (err) {
+          console.warn(
+            "Background image too large for localStorage storage capacity. Try a smaller file.",
+            err,
+          );
+          state.hasBg = true;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
 }
 
-function applyBg(dataUrl) {
-  if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image")) {
+function applyBg(url) {
+  const isData = typeof url === "string" && url.startsWith("data:image");
+  const isLocal = typeof url === "string" && url.startsWith("backgrounds/");
+  const isExternal = typeof url === "string" && url.startsWith("http");
+
+  if (!isData && !isLocal && !isExternal) {
     return clearBg();
   }
 
@@ -944,9 +995,9 @@ function applyBg(dataUrl) {
   const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
 
-  if (bg) bg.style.backgroundImage = `url(${dataUrl})`;
+  if (bg) bg.style.backgroundImage = `url('${url}')`;
+  if (thumb) thumb.style.backgroundImage = `url('${url}')`;
   if (base) base.style.opacity = "0";
-  if (thumb) thumb.style.backgroundImage = `url(${dataUrl})`;
 
   state.hasBg = true;
   applyWallpaperEffects();
@@ -959,17 +1010,41 @@ function clearBg() {
   const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
 
-  const fallbackUrl = "url('background-image.png')";
+  const fallbackUrl = "backgrounds/background-image.png";
 
-  if (bg) bg.style.backgroundImage = fallbackUrl;
+  if (bg) bg.style.backgroundImage = `url('${fallbackUrl}')`;
   if (base) base.style.opacity = "0";
-  if (thumb) thumb.style.backgroundImage = fallbackUrl;
+  if (thumb) thumb.style.backgroundImage = `url('${fallbackUrl}')`;
 
   state.hasBg = false;
-  const inp = document.getElementById("bg-input");
+  const inp = document.getElementById("custom-bg-input");
   if (inp) inp.value = "";
 
   applyWallpaperEffects();
+}
+
+/* ── WALLPAPER PRESETS ───────────────────────────────────── */
+function renderWallpaperButtons() {
+  const grid = document.getElementById("wallpaper-grid");
+  if (!grid) return;
+
+  grid.innerHTML = PRESET_WALLPAPERS.map(
+    (wp) => `
+    <button 
+      data-preset-bg="${wp.id}" 
+      title="${wp.id}"
+      class="group relative aspect-video w-full rounded-2xl overflow-hidden bg-white/[0.02] shadow-xl transition-all duration-300 focus:outline-none hover:shadow-2xl hover:scale-[1.02] active:scale-95"
+    >
+      <img 
+        src="${wp.value}" 
+        alt="${wp.id}" 
+        class="w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-500 ease-out" 
+        loading="lazy"
+      >
+      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 ease-out rounded-2xl"></div>
+    </button>
+  `,
+  ).join("");
 }
 
 /* ── WALLPAPER EFFECTS CONTROLS ───────────────────────────── */
@@ -1024,7 +1099,6 @@ function initWallpaperControls() {
 
 /* ── EVENT DELEGATION ─────────────────────────────────────── */
 function setupEventDelegation() {
-  // Handles bookmark grid items dynamically (Add or Remove clicks)
   document.getElementById("bookmarks-grid")?.addEventListener("click", (e) => {
     const removeBtn = e.target.closest(".bookmark-remove");
     if (removeBtn) {
@@ -1041,7 +1115,6 @@ function setupEventDelegation() {
     }
   });
 
-  // Handles checking or deleting individual list items
   const handleTaskListClick = (e) => {
     const target = e.target;
     const taskItem = target.closest(".task-item");
@@ -1062,37 +1135,42 @@ function setupEventDelegation() {
     .getElementById("task-list-mobile")
     ?.addEventListener("click", handleTaskListClick);
 
-  // Global document click listener (Catches duplicate/multiple buttons cleanly)
+  // GLOBAL DOCUMENT CLICK LISTENER
   document.addEventListener("click", (e) => {
-    // Triggers either of the '+' Add Task buttons
     if (e.target.closest(".task-add-trigger")) {
       openTaskModal();
     }
-    // Triggers the 'Clear all' task icon
     if (e.target.closest(".clear-tasks-trigger")) {
       clearAllTasks();
     }
-    // Triggers the modal close/cancel actions
     if (e.target.closest(".modal-cancel-trigger")) {
       closeModal();
     }
+
+    const presetBtn = e.target.closest("[data-preset-bg]");
+    if (presetBtn) {
+      const presetId = presetBtn.getAttribute("data-preset-bg");
+      const wallpaperObj = PRESET_WALLPAPERS.find((wp) => wp.id === presetId);
+
+      if (wallpaperObj) {
+        applyBg(wallpaperObj.value);
+        localStorage.setItem("gx_bg", wallpaperObj.value);
+      }
+    }
   });
 
-  // Interface Skin Dot Buttons
   document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setTheme(btn.dataset.themeBtn);
     });
   });
 
-  // Sidebar visibility switches
   ["weather", "clock", "bookmarks", "tasks"].forEach((key) => {
     document.getElementById(`toggle-${key}`)?.addEventListener("change", () => {
       toggleWidget(key);
     });
   });
 
-  // Reset Wallpaper button hook
   document.getElementById("clear-bg-btn")?.addEventListener("click", clearBg);
 }
 
