@@ -591,7 +591,7 @@ function getWeather() {
         d2.style.fontSize = "13px";
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 }
 
 /* ── SIDEBAR ──────────────────────────────────────────────── */
@@ -771,16 +771,16 @@ function renderTasks() {
   const html = !state.tasks.length
     ? `<p class="text-[10px] opacity-20 text-center py-3 uppercase tracking-widest">No tasks yet</p>`
     : state.tasks
-        .map(
-          (t, i) => `
+      .map(
+        (t, i) => `
         <div class="task-item group" data-index="${i}">
           <input type="checkbox" ${t.done ? "checked" : ""} class="checkbox checkbox-primary checkbox-xs border-white/20 rounded flex-shrink-0">
           <span class="text-[11px] font-medium transition-all flex-1 ${t.done ? "line-through opacity-20" : "opacity-65"}">${t.text}</span>
           <button class="task-del">✕</button>
         </div>
       `,
-        )
-        .join("");
+      )
+      .join("");
 
   if (list) list.innerHTML = html;
   if (listMobile) listMobile.innerHTML = html;
@@ -827,8 +827,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 function openLinkModal() {
-  const modalTitle   = document.getElementById("modal-title");
-  const modalInputs  = document.getElementById("modal-inputs");
+  const modalTitle = document.getElementById("modal-title");
+  const modalInputs = document.getElementById("modal-inputs");
   const modalConfirm = document.getElementById("modal-confirm");
   if (!modalTitle || !modalInputs || !modalConfirm) return;
 
@@ -842,7 +842,7 @@ function openLinkModal() {
   modalConfirm.onclick = () => {
     if (state.bookmarks.length >= MAX_BOOKMARKS) return shakeInput();
     const name = document.getElementById("url-name")?.value.trim();
-    const raw  = document.getElementById("url-link")?.value.trim();
+    const raw = document.getElementById("url-link")?.value.trim();
     if (!name || !raw) return shakeInput();
 
     let url;
@@ -877,8 +877,8 @@ function openLinkModal() {
 }
 
 function openTaskModal() {
-  const modalTitle   = document.getElementById("modal-title");
-  const modalInputs  = document.getElementById("modal-inputs");
+  const modalTitle = document.getElementById("modal-title");
+  const modalInputs = document.getElementById("modal-inputs");
   const modalConfirm = document.getElementById("modal-confirm");
   if (!modalTitle || !modalInputs || !modalConfirm) return;
 
@@ -975,28 +975,33 @@ function setupBg() {
 function applyBg(url) {
   if (typeof url !== "string") return clearBg();
 
-  const isData     = url.startsWith("data:image");
-  const isLocal    = url.startsWith("backgrounds/");
+  const isData = url.startsWith("data:image");
+  const isLocal = url.startsWith("backgrounds/");
   const isExternal = url.startsWith("http");
 
   if (!isData && !isLocal && !isExternal) return clearBg();
 
-  const bg    = document.getElementById("main-bg");
-  const base  = document.getElementById("base-overlay");
+  const bg = document.getElementById("main-bg");
+  const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
   if (!bg) return;
 
-  // Don't apply effects until image is actually loaded
-  const img = new Image();
-  img.onload = () => {
-    bg.style.backgroundImage    = `url('${url}')`;
+  const apply = () => {
+    bg.style.backgroundImage = `url('${url}')`;
     if (thumb) thumb.style.backgroundImage = `url('${url}')`;
-    if (base)  base.style.opacity = "0";
+    if (base) base.style.opacity = "0";
     state.hasBg = true;
     applyWallpaperEffects();
   };
-  img.onerror = () => clearBg();
-  img.src = url;
+
+  if (isData || isLocal) {
+    apply();
+  } else {
+    const img = new Image();
+    img.onload = apply;
+    img.onerror = () => clearBg();
+    img.src = url;
+  }
 }
 
 function clearBg() {
