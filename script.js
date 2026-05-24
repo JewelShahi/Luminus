@@ -13,28 +13,23 @@ function safeGet(key) {
 const PRESET_WALLPAPERS = [
   {
     id: "gojo-1",
-    value:
-      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779652796/satoru-gojo-1-4k_v0thvc.jpg",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652796/satoru-gojo-1-4k_v0thvc.jpg",
   },
   {
     id: "gojo-2",
-    value:
-      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779652796/satoru-gojo-2-4k_t2ia0f.jpg",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652796/satoru-gojo-2-4k_t2ia0f.jpg",
   },
   {
     id: "gojo-3",
-    value:
-      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779652901/gojo_eyes_rwqbsb.png",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652901/gojo_eyes_rwqbsb.png",
   },
   {
     id: "yuji-sukuna",
-    value:
-      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779654350/yuji-sukuna_a00hz4.jpg",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779654350/yuji-sukuna_a00hz4.jpg",
   },
   {
     id: "liebe-black-clover",
-    value:
-      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1779654342/liebe-black-clover_tkchnm.jpg",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779654342/liebe-black-clover_tkchnm.jpg",
   },
   { id: "default-bg", value: "backgrounds/background-image.png" },
 ];
@@ -815,27 +810,28 @@ function saveTasks() {
 }
 
 /* ── MODALS ───────────────────────────────────────────────── */
-const backdrop = document.getElementById("modal-backdrop");
-const modalTitle = document.getElementById("modal-title");
-const modalInputs = document.getElementById("modal-inputs");
-const modalConfirm = document.getElementById("modal-confirm");
-
 function openModal() {
-  backdrop?.classList.add("show");
-}
-function closeModal() {
-  backdrop?.classList.remove("show");
+  document.getElementById("modal-backdrop")?.classList.add("show");
 }
 
-backdrop?.addEventListener("click", (e) => {
-  if (e.target === backdrop) closeModal();
+function closeModal() {
+  document.getElementById("modal-backdrop")?.classList.remove("show");
+}
+
+document.getElementById("modal-backdrop")?.addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeModal();
 });
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
 function openLinkModal() {
+  const modalTitle   = document.getElementById("modal-title");
+  const modalInputs  = document.getElementById("modal-inputs");
+  const modalConfirm = document.getElementById("modal-confirm");
   if (!modalTitle || !modalInputs || !modalConfirm) return;
+
   modalTitle.textContent = "ADD QUICK LINK";
   modalInputs.innerHTML = `
     <input type="text" id="url-name" placeholder="Site name (e.g. Reddit)" autocomplete="off">
@@ -844,39 +840,29 @@ function openLinkModal() {
   modalConfirm.textContent = "Add Link";
 
   modalConfirm.onclick = () => {
-    if (state.bookmarks.length >= MAX_BOOKMARKS) return shakeinput();
+    if (state.bookmarks.length >= MAX_BOOKMARKS) return shakeInput();
     const name = document.getElementById("url-name")?.value.trim();
-    const raw = document.getElementById("url-link")?.value.trim();
-
-    if (!name || !raw) return shakeinput();
+    const raw  = document.getElementById("url-link")?.value.trim();
+    if (!name || !raw) return shakeInput();
 
     let url;
     try {
       url = new URL(raw.startsWith("http") ? raw : "https://" + raw);
     } catch {
-      return shakeinput();
+      return shakeInput();
     }
 
-    const hostname = url.hostname;
-    if (
-      !hostname.includes(".") ||
-      hostname.length <= 3 ||
-      hostname.startsWith(".") ||
-      hostname.endsWith(".")
-    ) {
-      return shakeinput();
+    const { hostname } = url;
+    if (!hostname.includes(".") || hostname.length <= 3 || hostname.startsWith(".") || hostname.endsWith(".")) {
+      return shakeInput();
     }
 
     const normalizedNew = url.href.replace(/\/$/, "");
     const exists = state.bookmarks.some((b) => {
-      try {
-        return new URL(b.url).href.replace(/\/$/, "") === normalizedNew;
-      } catch {
-        return false;
-      }
+      try { return new URL(b.url).href.replace(/\/$/, "") === normalizedNew; }
+      catch { return false; }
     });
-
-    if (exists) return shakeinput();
+    if (exists) return shakeInput();
 
     state.bookmarks.push({ name, url: url.href });
     localStorage.setItem("gx_bookmarks", JSON.stringify(state.bookmarks));
@@ -891,10 +877,13 @@ function openLinkModal() {
 }
 
 function openTaskModal() {
+  const modalTitle   = document.getElementById("modal-title");
+  const modalInputs  = document.getElementById("modal-inputs");
+  const modalConfirm = document.getElementById("modal-confirm");
   if (!modalTitle || !modalInputs || !modalConfirm) return;
+
   modalTitle.textContent = "NEW TASK";
-  modalInputs.innerHTML =
-    '<input type="text" id="task-text" placeholder="What needs to be done?" autocomplete="off">';
+  modalInputs.innerHTML = `<input type="text" id="task-text" placeholder="What needs to be done?" autocomplete="off">`;
   modalConfirm.textContent = "Add Task";
 
   modalConfirm.onclick = () => {
@@ -912,8 +901,8 @@ function openTaskModal() {
   });
 }
 
-function shakeinput() {
-  modalInputs?.querySelectorAll("input").forEach((inp) => {
+function shakeInput() {
+  document.getElementById("modal-inputs")?.querySelectorAll("input").forEach((inp) => {
     inp.style.borderColor = "rgba(244,63,94,0.7)";
     inp.style.animation = "shake 0.3s ease";
     setTimeout(() => {
@@ -984,24 +973,30 @@ function setupBg() {
 }
 
 function applyBg(url) {
-  const isData = typeof url === "string" && url.startsWith("data:image");
-  const isLocal = typeof url === "string" && url.startsWith("backgrounds/");
-  const isExternal = typeof url === "string" && url.startsWith("http");
+  if (typeof url !== "string") return clearBg();
 
-  if (!isData && !isLocal && !isExternal) {
-    return clearBg();
-  }
+  const isData     = url.startsWith("data:image");
+  const isLocal    = url.startsWith("backgrounds/");
+  const isExternal = url.startsWith("http");
 
-  const bg = document.getElementById("main-bg");
-  const base = document.getElementById("base-overlay");
+  if (!isData && !isLocal && !isExternal) return clearBg();
+
+  const bg    = document.getElementById("main-bg");
+  const base  = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
+  if (!bg) return;
 
-  if (bg) bg.style.backgroundImage = `url('${url}')`;
-  if (thumb) thumb.style.backgroundImage = `url('${url}')`;
-  if (base) base.style.opacity = "0";
-
-  state.hasBg = true;
-  applyWallpaperEffects();
+  // Don't apply effects until image is actually loaded
+  const img = new Image();
+  img.onload = () => {
+    bg.style.backgroundImage    = `url('${url}')`;
+    if (thumb) thumb.style.backgroundImage = `url('${url}')`;
+    if (base)  base.style.opacity = "0";
+    state.hasBg = true;
+    applyWallpaperEffects();
+  };
+  img.onerror = () => clearBg();
+  img.src = url;
 }
 
 function clearBg() {
