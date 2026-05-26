@@ -3,7 +3,18 @@
   "name": "Luminus",
   "version": "2.0.0",
   "description": "Beautiful dark glassmorphism new tab dashboard.",
-  "chrome_url_overrides": { "newtab": "newtab.html" },
-  "permissions": ["storage"],
-  "icons": { "16": "icon/icon.png", "48": "icon/icon.png", "128": "icon/icon.png" }
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.open-meteo.com/*"
+  ],
+  "icons": {
+    "16": "icon/icon.png",
+    "48": "icon/icon.png",
+    "128": "icon/icon.png"
+  }
 }
