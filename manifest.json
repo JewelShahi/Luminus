@@ -10,7 +10,9 @@
     "storage"
   ],
   "host_permissions": [
-    "https://api.open-meteo.com/*"
+    "https://api.open-meteo.com/*",
+    "https://wttr.in/*",
+    "https://nominatim.openstreetmap.org/*"
   ],
   "icons": {
     "16": "icon/icon.png",

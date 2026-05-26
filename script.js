@@ -465,22 +465,122 @@ function getWeather() {
       });
   }
 
-  function fetchAndRender(lat, lon) {
+  async function fetchAndRender(lat, lon) {
 
-    Promise.all([
+    // ---------- WEATHER FETCH WITH FALLBACK ----------
+    async function fetchWeather(lat, lon) {
 
-      fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
-      ).then((r) => r.json()),
+      // PRIMARY: Open-Meteo
+      try {
 
-      getCity(lat, lon)
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`
+        );
 
-    ])
+        if (!res.ok) {
+          throw new Error(`Open-Meteo failed: ${res.status}`);
+        }
 
-      .then(([weatherData, city]) => {
+        const data = await res.json();
+
+        return {
+          temperature: data.current.temperature_2m,
+          weathercode: data.current.weather_code,
+          is_day: data.current.is_day
+        };
+
+      } catch (err) {
+
+        console.warn("Open-Meteo failed, trying fallback...", err);
+
+      }
+
+      // FALLBACK: wttr.in
+      try {
+
+        const res = await fetch(
+          `https://wttr.in/${lat},${lon}?format=j1`
+        );
+
+        if (!res.ok) {
+          throw new Error(`wttr.in failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        const current = data.current_condition[0];
+
+        let weathercode = 3;
+
+        const desc =
+          current.weatherDesc[0].value.toLowerCase();
+
+        if (desc.includes("clear")) weathercode = 0;
+        else if (desc.includes("partly")) weathercode = 2;
+        else if (desc.includes("cloud")) weathercode = 3;
+        else if (desc.includes("rain")) weathercode = 61;
+        else if (desc.includes("snow")) weathercode = 71;
+
+        return {
+          temperature: parseFloat(current.temp_C),
+          weathercode,
+          is_day: current.isdayyes === "yes" ? 1 : 0
+        };
+
+      } catch (err) {
+
+        console.error("Fallback weather API failed:", err);
+
+        throw err;
+      }
+    }
+
+    const weatherPromise = fetchWeather(lat, lon);
+
+    const cityPromise = getCity(lat, lon);
+
+    Promise.allSettled([weatherPromise, cityPromise])
+
+      .then(([weatherRes, cityRes]) => {
+
+        // weather failed
+        if (weatherRes.status !== "fulfilled") {
+
+          console.error(
+            "Weather fetch failed:",
+            weatherRes.reason
+          );
+
+          const t1 = document.getElementById("temp");
+          const t2 = document.getElementById("temp-desktop");
+
+          const d1 =
+            document.getElementById("weather-description");
+
+          const d2 =
+            document.getElementById("weather-description-desktop");
+
+          if (t1) t1.textContent = "--";
+          if (t2) t2.textContent = "--";
+
+          if (d1) d1.textContent = "Weather unavailable";
+          if (d2) d2.textContent = "Weather unavailable";
+
+          return;
+        }
+
+        const weatherData = weatherRes.value;
+
+        // city fallback
+        const city =
+          cityRes.status === "fulfilled"
+            ? cityRes.value
+            : "Unknown location";
 
         const {
-          current_weather: { temperature, weathercode, is_day }
+          temperature,
+          weathercode,
+          is_day
         } = weatherData;
 
         const night = !is_day;
@@ -495,7 +595,9 @@ function getWeather() {
         let s = "", desc = "";
 
         const sunOrMoon = (cx, cy, r) =>
-          night ? moonStars(cx, cy, r) : sunFull(cx, cy, r, "#FBBF24");
+          night
+            ? moonStars(cx, cy, r)
+            : sunFull(cx, cy, r, "#FBBF24");
 
         const sunOrMoonTiny = (cx, cy) =>
           night
@@ -507,9 +609,12 @@ function getWeather() {
             `<line x1="${cx}" y1="${cy - 4}" x2="${cx}" y2="${cy - 6.5}" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>`;
 
         switch (weathercode) {
+
           case 0:
             desc = "Clear sky";
-            s = night ? moonStars(16, 13, 5.5) : sunFull(16, 13, 5.5, "#FBBF24");
+            s = night
+              ? moonStars(16, 13, 5.5)
+              : sunFull(16, 13, 5.5, "#FBBF24");
             break;
 
           case 1:
@@ -527,19 +632,35 @@ function getWeather() {
             s = clBig(cM);
             break;
 
+          case 61:
+            desc = "Rain";
+            s =
+              clBig(cM) +
+              `<ellipse cx="11" cy="28" rx="1.5" ry="2.5" fill="#60A5FA"/>` +
+              `<ellipse cx="16" cy="30" rx="1.5" ry="2.5" fill="#60A5FA"/>` +
+              `<ellipse cx="21" cy="28" rx="1.5" ry="2.5" fill="#60A5FA"/>`;
+            break;
+
+          case 71:
+            desc = "Snow";
+            s =
+              clBig(cM) +
+              `<circle cx="12" cy="28" r="1.5" fill="#BAE6FD"/>` +
+              `<circle cx="18" cy="30" r="1.5" fill="#BAE6FD"/>` +
+              `<circle cx="22" cy="27" r="1.5" fill="#BAE6FD"/>`;
+            break;
+
           default:
             desc = "Cloudy";
             s = clBig(cM);
         }
 
         // night tint overlay
-        if (
-          night &&
-          [2, 3].includes(weathercode)
-        ) {
+        if (night && [2, 3].includes(weathercode)) {
+
           s =
-            `<rect x="0" y="0" width="32" height="32" fill="#0F172A" opacity="0.15" rx="4"/>` +
-            s;
+            `<rect x="0" y="0" width="32" height="32" fill="#0F172A" opacity="0.15" rx="4"/>`
+            + s;
         }
 
         const finalSvg =
@@ -548,14 +669,29 @@ function getWeather() {
         const tempStr = `${Math.round(temperature)}°`;
         const cityStr = city;
 
-        const c1 = document.getElementById("weather-city"),
-          c2 = document.getElementById("weather-city-desktop"),
-          t1 = document.getElementById("temp"),
-          t2 = document.getElementById("temp-desktop"),
-          i1 = document.getElementById("weather-icon"),
-          i2 = document.getElementById("weather-icon-desktop"),
-          d1 = document.getElementById("weather-description"),
-          d2 = document.getElementById("weather-description-desktop");
+        const c1 =
+          document.getElementById("weather-city");
+
+        const c2 =
+          document.getElementById("weather-city-desktop");
+
+        const t1 =
+          document.getElementById("temp");
+
+        const t2 =
+          document.getElementById("temp-desktop");
+
+        const i1 =
+          document.getElementById("weather-icon");
+
+        const i2 =
+          document.getElementById("weather-icon-desktop");
+
+        const d1 =
+          document.getElementById("weather-description");
+
+        const d2 =
+          document.getElementById("weather-description-desktop");
 
         // city
         if (c1) c1.textContent = cityStr;
@@ -584,7 +720,9 @@ function getWeather() {
 
       })
 
-      .catch(() => { });
+      .catch((err) => {
+        console.error("Weather widget failed:", err);
+      });
   }
 
   // ── geolocation with fast fallback ─────────────────────────
