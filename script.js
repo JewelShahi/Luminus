@@ -524,7 +524,10 @@ function getWeather() {
         return {
           temperature: parseFloat(current.temp_C),
           weathercode,
-          is_day: current.isdayyes === "yes" ? 1 : 0
+          is_day: (() => {
+            const hour = new Date().getHours();
+            return hour >= 6 && hour < 20 ? 1 : 0;
+          })()
         };
 
       } catch (err) {
@@ -583,7 +586,7 @@ function getWeather() {
           is_day
         } = weatherData;
 
-        const night = !is_day;
+        const night = Number(is_day) !== 1;
 
         // cloud colours
         const cL = night ? clLN : clL;
