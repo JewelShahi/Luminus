@@ -790,8 +790,27 @@ function applyTheme(theme) {
 
 /* ── EVENT DELEGATION ─────────────────────────────────────── */
 function setupEventDelegation() {
-  // Bookmark additions & removals
-  document.getElementById("bookmarks-grid")?.addEventListener("click", (e) => {
+
+  // Task list click events
+  const handleTaskListClick = (e) => {
+    const target = e.target;
+    const taskItem = target.closest(".task-item");
+    if (!taskItem) return;
+    const index = parseInt(taskItem.dataset.index, 10);
+    if (target.classList.contains("task-del")) {
+      deleteTask(index);
+    } else if (target.type === "checkbox") {
+      toggleTask(index);
+    }
+  };
+
+  document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
+  document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
+
+  // GLOBAL DOCUMENT CLICK LISTENER — all button triggers
+  document.addEventListener("click", (e) => {
+
+    // Remove bookmark
     const removeBtn = e.target.closest(".bookmark-remove");
     if (removeBtn) {
       e.preventDefault();
@@ -801,48 +820,43 @@ function setupEventDelegation() {
       return;
     }
 
+    // Edit bookmark
+    const editBtn = e.target.closest(".bookmark-edit");
+    if (editBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const index = parseInt(editBtn.dataset.index, 10);
+      openEditBookmarkModal(index);
+      return;
+    }
+
+    // Add bookmark
     const addBtn = e.target.closest(".bookmark-add");
     if (addBtn) {
       openLinkModal();
+      return;
     }
-  });
 
-  // Task events
-  const handleTaskListClick = (e) => {
-    const target = e.target;
-    const taskItem = target.closest(".task-item");
-    if (!taskItem) return;
-    const index = parseInt(taskItem.dataset.index, 10);
+    // Tasks
+    if (e.target.closest(".task-add-trigger")) openTaskModal();
+    if (e.target.closest(".clear-tasks-trigger")) clearAllTasks();
+    if (e.target.closest(".modal-cancel-trigger")) closeModal();
 
-    if (target.classList.contains("task-del")) {
-      deleteTask(index);
-    } else if (target.type === "checkbox") {
-      toggleTask(index);
-    }
-  };
-
-  document
-    .getElementById("task-list")
-    ?.addEventListener("click", handleTaskListClick);
-  document
-    .getElementById("task-list-mobile")
-    ?.addEventListener("click", handleTaskListClick);
-
-  // Task action triggers (Fixes CSP issue)
-  document.addEventListener("click", (e) => {
-    if (e.target.closest(".task-add-trigger")) {
-      openTaskModal();
-    }
-    if (e.target.closest(".clear-tasks-trigger")) {
-      clearAllTasks();
+    // Preset wallpapers
+    const presetBtn = e.target.closest("[data-preset-bg]");
+    if (presetBtn) {
+      const presetId = presetBtn.getAttribute("data-preset-bg");
+      const wallpaperObj = PRESET_WALLPAPERS.find((wp) => wp.id === presetId);
+      if (wallpaperObj) {
+        applyBg(wallpaperObj.value);
+        localStorage.setItem("gx_bg", wallpaperObj.value);
+      }
     }
   });
 
   // Interface Skin Theme Button bindings
   document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      setTheme(btn.dataset.themeBtn);
-    });
+    btn.addEventListener("click", () => setTheme(btn.dataset.themeBtn));
   });
 
   // Sidebar widget toggles
@@ -854,6 +868,45 @@ function setupEventDelegation() {
 
   // Remove wallpaper binding
   document.getElementById("clear-bg-btn")?.addEventListener("click", clearBg);
+}
+
+/* ── EDIT BOOKMARK MODAL ──────────────────────────────────── */
+function openEditBookmarkModal(index) {
+  const bookmark = state.bookmarks[index];
+  if (!bookmark) return;
+
+  const modalTitle = document.getElementById("modal-title");
+  const modalInputs = document.getElementById("modal-inputs");
+  const modalConfirm = document.getElementById("modal-confirm");
+  if (!modalTitle || !modalInputs || !modalConfirm) return;
+
+  modalTitle.textContent = "EDIT LINK";
+  modalInputs.innerHTML = `
+    <input type="text" id="url-name" placeholder="Site name" autocomplete="off" value="${bookmark.name}">
+    <input type="url" id="url-link" placeholder="https://example.com" autocomplete="off" value="${bookmark.url}">
+  `;
+  modalConfirm.textContent = "Save Changes";
+
+  modalConfirm.onclick = () => {
+    const name = document.getElementById("url-name")?.value.trim();
+    const raw = document.getElementById("url-link")?.value.trim();
+    if (!name || !raw) return shakeInput();
+
+    let url;
+    try {
+      url = new URL(raw.startsWith("http") ? raw : "https://" + raw);
+    } catch {
+      return shakeInput();
+    }
+
+    state.bookmarks[index] = { name, url: url.href };
+    localStorage.setItem("gx_bookmarks", JSON.stringify(state.bookmarks));
+    renderBookmarks();
+    closeModal();
+  };
+
+  openModal();
+  setTimeout(() => document.getElementById("url-name")?.focus(), 200);
 }
 
 /* ── BOOKMARKS ────────────────────────────────────────────── */
@@ -868,10 +921,15 @@ function renderBookmarks() {
     div.className = "bookmark-item";
     div.style.animationDelay = `${i * 50}ms`;
     div.innerHTML = `
-      <a href="${b.url}" class="bookmark-circle">
-        <img src="https://www.google.com/s2/favicons?domain=${b.url}&sz=128" loading="lazy" onerror="this.style.opacity='0.4'" alt="${b.name}">
-        <button class="bookmark-remove" data-index="${i}" title="Remove">✕</button>
-      </a>
+      <div class="bookmark-circle-wrap">
+        <a href="${b.url}" class="bookmark-circle">
+          <img src="https://www.google.com/s2/favicons?domain=${b.url}&sz=128" loading="lazy" onerror="this.style.opacity='0.4'" alt="${b.name}">
+        </a>
+        <div class="bookmark-actions">
+          <button class="bookmark-edit" data-index="${i}" title="Edit">✎</button>
+          <button class="bookmark-remove" data-index="${i}" title="Remove">✕</button>
+        </div>
+      </div>
       <span class="bookmark-label">${b.name}</span>
     `;
     frag.appendChild(div);
@@ -957,11 +1015,21 @@ function saveTasks() {
 
 /* ── MODALS ───────────────────────────────────────────────── */
 function openModal() {
-  document.getElementById("modal-backdrop")?.classList.add("show");
+  const backdrop = document.getElementById("modal-backdrop");
+  const box = document.getElementById("modal-box");
+  if (!backdrop || !box) return;
+  backdrop.style.opacity = "1";
+  backdrop.style.pointerEvents = "auto";
+  box.style.transform = "scale(1)";
 }
 
 function closeModal() {
-  document.getElementById("modal-backdrop")?.classList.remove("show");
+  const backdrop = document.getElementById("modal-backdrop");
+  const box = document.getElementById("modal-box");
+  if (!backdrop || !box) return;
+  backdrop.style.opacity = "0";
+  backdrop.style.pointerEvents = "none";
+  box.style.transform = "scale(0.95)";
 }
 
 document.getElementById("modal-backdrop")?.addEventListener("click", (e) => {
@@ -1244,82 +1312,7 @@ function initWallpaperControls() {
   applyWallpaperEffects();
 }
 
-/* ── EVENT DELEGATION ─────────────────────────────────────── */
-function setupEventDelegation() {
-  document.getElementById("bookmarks-grid")?.addEventListener("click", (e) => {
-    const removeBtn = e.target.closest(".bookmark-remove");
-    if (removeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const index = parseInt(removeBtn.dataset.index, 10);
-      removeBookmark(removeBtn.closest(".bookmark-item"), index);
-      return;
-    }
 
-    const addBtn = e.target.closest(".bookmark-add");
-    if (addBtn) {
-      openLinkModal();
-    }
-  });
-
-  const handleTaskListClick = (e) => {
-    const target = e.target;
-    const taskItem = target.closest(".task-item");
-    if (!taskItem) return;
-    const index = parseInt(taskItem.dataset.index, 10);
-
-    if (target.classList.contains("task-del")) {
-      deleteTask(index);
-    } else if (target.type === "checkbox") {
-      toggleTask(index);
-    }
-  };
-
-  document
-    .getElementById("task-list")
-    ?.addEventListener("click", handleTaskListClick);
-  document
-    .getElementById("task-list-mobile")
-    ?.addEventListener("click", handleTaskListClick);
-
-  // GLOBAL DOCUMENT CLICK LISTENER
-  document.addEventListener("click", (e) => {
-    if (e.target.closest(".task-add-trigger")) {
-      openTaskModal();
-    }
-    if (e.target.closest(".clear-tasks-trigger")) {
-      clearAllTasks();
-    }
-    if (e.target.closest(".modal-cancel-trigger")) {
-      closeModal();
-    }
-
-    const presetBtn = e.target.closest("[data-preset-bg]");
-    if (presetBtn) {
-      const presetId = presetBtn.getAttribute("data-preset-bg");
-      const wallpaperObj = PRESET_WALLPAPERS.find((wp) => wp.id === presetId);
-
-      if (wallpaperObj) {
-        applyBg(wallpaperObj.value);
-        localStorage.setItem("gx_bg", wallpaperObj.value);
-      }
-    }
-  });
-
-  document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      setTheme(btn.dataset.themeBtn);
-    });
-  });
-
-  ["weather", "clock", "bookmarks", "tasks"].forEach((key) => {
-    document.getElementById(`toggle-${key}`)?.addEventListener("change", () => {
-      toggleWidget(key);
-    });
-  });
-
-  document.getElementById("clear-bg-btn")?.addEventListener("click", clearBg);
-}
 
 /* ── OFFLINE TOAST ────────────────────────────────────────── */
 function initOfflineToast() {

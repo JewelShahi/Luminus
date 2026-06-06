@@ -278,7 +278,6 @@ header > div {
 }
 
 /* ── BOOKMARKS ────────────────────────────────────────────── */
-
 .bookmark-item {
   display: flex;
   flex-direction: column;
@@ -292,11 +291,16 @@ header > div {
     opacity: 0;
     transform: translateY(12px) scale(0.9);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.bookmark-circle-wrap {
+  position: relative;
+  width: 38px;
+  height: 38px;
 }
 
 .bookmark-circle {
@@ -354,31 +358,66 @@ header > div {
   opacity: 0.9;
 }
 
-.bookmark-remove {
+.bookmark-actions {
   position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 20px;
-  height: 20px;
-  border-radius: 8px;
-  background: #ef4444;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  bottom: 75%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.7);
+  margin-bottom: 5px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
+  flex-direction: row;
+  gap: 3px;
   opacity: 0;
-  transform: scale(0.7);
+  transform-origin: bottom center;
   transition:
     opacity 200ms ease,
     transform 200ms ease;
-  cursor: pointer;
-  color: #fff;
+  z-index: 10;
 }
 
-.bookmark-item:hover .bookmark-remove {
+.bookmark-circle-wrap:hover .bookmark-actions {
   opacity: 1;
-  transform: scale(1);
+  transform: translateX(-50%) scale(1);
+}
+
+/* ── shared base ── */
+.bookmark-remove,
+.bookmark-edit {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+  line-height: 1;
+  padding: 0;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+/* ✎ edit */
+.bookmark-edit {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bookmark-edit:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* ✕ remove */
+.bookmark-remove {
+  background: rgba(239, 68, 68, 0.6);
+}
+
+.bookmark-remove:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.1);
 }
 
 .bookmark-add {
@@ -405,7 +444,6 @@ header > div {
   background: rgba(var(--primary-rgb), 0.07);
   transform: translateY(-4px) scale(1.04);
 }
-
 /* ── ICON BTN ─────────────────────────────────────────────── */
 
 .icon-btn {
@@ -752,8 +790,9 @@ header > div {
   opacity: 0;
   pointer-events: none;
   transform: translateY(-120%) scale(0.96);
-  transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #offline-toast.toast-show {
