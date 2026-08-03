@@ -42,11 +42,11 @@ const PRESET_WALLPAPERS = [
   },
   {
     id: "sukuna-vs-gojo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_24/v1785789580/sukuna-vs-gojo_dwkzlp.mp4"
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_24/v1785789580/sukuna-vs-gojo_dwkzlp.mp4"
   },
   {
     id: "kokushibo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_24/v1785793601/kokushibo_hq6r3t.mp4"
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_24/v1785793601/kokushibo_hq6r3t.mp4"
   },
   {
     id: "sung-jin-woo",
