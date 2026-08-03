@@ -9,29 +9,49 @@ function safeGet(key) {
   return v === null || v === "null" || v === "undefined" || v === "" ? null : v;
 }
 
-// 4K Wallpapers Directory Mapping
+// 4K Wallpapers Directory Mapping (Cloudinary-hosted, auto-optimized, and free to use)
+// For optimized video background /w_1280,q_auto:eco,f_auto,fps_24 after the video/upload segment and the version to be entered
 const PRESET_WALLPAPERS = [
   {
     id: "gojo-1",
     value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652796/satoru-gojo-1-4k_v0thvc.jpg",
   },
   {
-    id: "gojo-2",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652796/satoru-gojo-2-4k_t2ia0f.jpg",
+    id: "kagurabachi",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785792406/kagurabachi_qdtheh.jpg"
   },
   {
     id: "gojo-3",
     value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652901/gojo_eyes_rwqbsb.png",
   },
   {
-    id: "yuji-sukuna",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779654350/yuji-sukuna_a00hz4.jpg",
+    id: "kafka-hibino",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785792544/kafka-hibino_loenym.jpg",
+  },
+  {
+    id: "hoshino",
+    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785793600/hoshino_b3wd5k.jpg",
   },
   {
     id: "liebe-black-clover",
     value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779654342/liebe-black-clover_tkchnm.jpg",
   },
-  { id: "default-bg", value: "backgrounds/background-image.png" },
+  {
+    id: "default-bg",
+    value: "backgrounds/background-image.png"
+  },
+  {
+    id: "sukuna-vs-gojo",
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_24/v1785789580/sukuna-vs-gojo_dwkzlp.mp4"
+  },
+  {
+    id: "kokushibo",
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_24/v1785793601/kokushibo_hq6r3t.mp4"
+  },
+  {
+    id: "sung-jin-woo",
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_24/v1785794123/sung-jin-woo_q4bkvh.mp4"
+  }
 ];
 
 /* ── State & Initial Boot Fallbacks ───────────────────────── */
@@ -1126,16 +1146,19 @@ function shakeInput() {
   });
 }
 
+/* ── Check for video file ─────────────────────────────────────────────── */
+function isVideoUrl(url) {
+  if (typeof url !== "string") return false;
+  return url.includes("/video/upload/") ||
+    url.startsWith("data:video") ||
+    /\.(mp4|webm|mov)$/i.test(url);
+}
+
 /* ── BACKGROUND ───────────────────────────────────────────── */
 function setupBg() {
   const savedBg = safeGet("gx_bg");
 
-  if (
-    typeof savedBg === "string" &&
-    (savedBg.startsWith("data:image") ||
-      savedBg.startsWith("backgrounds/") ||
-      savedBg.startsWith("http"))
-  ) {
+  if (savedBg) {
     applyBg(savedBg);
   } else {
     clearBg();
@@ -1147,10 +1170,12 @@ function setupBg() {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      const MAX_SIZE_MB = 4;
+      const isVideo = file.type.startsWith("video/");
+      const MAX_SIZE_MB = isVideo ? 15 : 4;
+
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
         alert(
-          `Image is too large! Please choose an image smaller than ${MAX_SIZE_MB}MB.`,
+          `File is too large! Please choose a file smaller than ${MAX_SIZE_MB}MB.`,
         );
         e.target.value = "";
         return;
@@ -1159,14 +1184,15 @@ function setupBg() {
       const reader = new FileReader();
       reader.onload = async (ev) => {
         const rawUrl = ev.target.result;
-        if (typeof rawUrl !== "string" || !rawUrl.startsWith("data:image"))
-          return;
+        if (typeof rawUrl !== "string") return;
 
-        let dataUrl;
-        try {
-          dataUrl = await compressImage(rawUrl, 1280, 0.6);
-        } catch {
-          dataUrl = rawUrl;
+        let dataUrl = rawUrl;
+        if (!isVideo && rawUrl.startsWith("data:image")) {
+          try {
+            dataUrl = await compressImage(rawUrl, 1280, 0.6);
+          } catch {
+            dataUrl = rawUrl;
+          }
         }
 
         applyBg(dataUrl);
@@ -1176,7 +1202,7 @@ function setupBg() {
           state.hasBg = true;
         } catch (err) {
           console.warn(
-            "Background image too large for localStorage storage capacity. Try a smaller file.",
+            "Background too large for localStorage storage capacity.",
             err,
           );
           state.hasBg = true;
@@ -1189,32 +1215,79 @@ function setupBg() {
 function applyBg(url) {
   if (typeof url !== "string") return clearBg();
 
-  const isData = url.startsWith("data:image");
-  const isLocal = url.startsWith("backgrounds/");
-  const isExternal = url.startsWith("http");
-
-  if (!isData && !isLocal && !isExternal) return clearBg();
-
   const bg = document.getElementById("main-bg");
   const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
   if (!bg) return;
 
-  const apply = () => {
-    bg.style.backgroundImage = `url('${url}')`;
-    if (thumb) thumb.style.backgroundImage = `url('${url}')`;
+  const isVideo = isVideoUrl(url);
+
+  let videoEl = document.getElementById("main-bg-video");
+
+  if (isVideo) {
+    bg.style.backgroundImage = "none";
+
+    if (!videoEl) {
+      videoEl = document.createElement("video");
+      videoEl.id = "main-bg-video";
+      videoEl.autoplay = true;
+      videoEl.loop = true;
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+
+      Object.assign(videoEl.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100vh",
+        objectFit: "cover",
+        pointerEvents: "none",
+        zIndex: "-10"
+      });
+
+      bg.appendChild(videoEl);
+    }
+
+    // Full-quality original URL — untouched, this is the real background
+    if (videoEl.src !== url) {
+      videoEl.src = url;
+    }
+
+    videoEl.style.display = "block";
+    videoEl.play().catch(() => {});
+
+    // Sidebar thumb: small low-quality static poster, never plays
+    if (thumb) {
+      thumb.style.backgroundImage = `url('${getVideoPosterUrl(url, { width: 300, quality: 25 })}')`;
+    }
+
     if (base) base.style.opacity = "0";
     state.hasBg = true;
     applyWallpaperEffects();
-  };
-
-  if (isData || isLocal) {
-    apply();
   } else {
-    const img = new Image();
-    img.onload = apply;
-    img.onerror = () => clearBg();
-    img.src = url;
+    if (videoEl) {
+      videoEl.pause();
+      videoEl.src = "";
+      videoEl.style.display = "none";
+    }
+
+    const apply = () => {
+      bg.style.backgroundImage = `url('${url}')`;
+      if (thumb) thumb.style.backgroundImage = `url('${url}')`;
+      if (base) base.style.opacity = "0";
+      state.hasBg = true;
+      applyWallpaperEffects();
+    };
+
+    if (url.startsWith("data:image") || url.startsWith("backgrounds/")) {
+      apply();
+    } else {
+      const img = new Image();
+      img.onload = apply;
+      img.onerror = () => clearBg();
+      img.src = url;
+    }
   }
 }
 
@@ -1224,12 +1297,29 @@ function clearBg() {
   const bg = document.getElementById("main-bg");
   const base = document.getElementById("base-overlay");
   const thumb = document.getElementById("wallpaper-thumb");
+  const thumbVideo = document.getElementById("wallpaper-thumb-video");
+  const videoEl = document.getElementById("main-bg-video");
+
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.src = "";
+    videoEl.style.display = "none";
+  }
+
+  if (thumbVideo) {
+    thumbVideo.pause();
+    thumbVideo.removeAttribute("src");
+    thumbVideo.classList.add("hidden");
+  }
 
   const fallbackUrl = "backgrounds/background-image.png";
 
   if (bg) bg.style.backgroundImage = `url('${fallbackUrl}')`;
   if (base) base.style.opacity = "0";
-  if (thumb) thumb.style.backgroundImage = `url('${fallbackUrl}')`;
+  if (thumb) {
+    thumb.style.backgroundImage = `url('${fallbackUrl}')`;
+    thumb.classList.remove("hidden");
+  }
 
   state.hasBg = false;
   const inp = document.getElementById("custom-bg-input");
@@ -1238,28 +1328,53 @@ function clearBg() {
   applyWallpaperEffects();
 }
 
+/* ── Video compression and optimization ───────────────────────────────────── */
+function getVideoPosterUrl(url, { width = 400, quality = 30 } = {}) {
+  if (!url.includes("/video/upload/")) return url; // not a Cloudinary video, leave as-is
+
+  const transform = `w_${width},q_${quality},f_jpg`;
+  return url
+    .replace("/video/upload/", `/video/upload/${transform}/`)
+    .replace(/\.(mp4|webm|mov)$/i, ".jpg");
+}
+
 /* ── WALLPAPER PRESETS ───────────────────────────────────── */
 function renderWallpaperButtons() {
   const grid = document.getElementById("wallpaper-grid");
   if (!grid) return;
 
-  grid.innerHTML = PRESET_WALLPAPERS.map(
-    (wp) => `
-    <button 
-      data-preset-bg="${wp.id}" 
-      title="${wp.id}"
-      class="group relative aspect-video w-full rounded-2xl overflow-hidden bg-white/[0.02] shadow-xl transition-all duration-300 focus:outline-none hover:shadow-2xl hover:scale-[1.02] active:scale-95"
-    >
-      <img 
-        src="${wp.value}" 
-        alt="${wp.id}" 
-        class="w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-500 ease-out" 
-        loading="lazy"
+  grid.innerHTML = PRESET_WALLPAPERS.map((wp) => {
+    const isVideo = wp.value.includes("/video/upload/") || /\.(mp4|webm|mov)$/i.test(wp.value);
+
+    // Grid thumbnails are small, so keep this poster tight and cheap
+    const previewSrc = isVideo ? getVideoPosterUrl(wp.value, { width: 300, quality: 25 }) : wp.value;
+
+    const mediaHtml = `<img 
+          src="${previewSrc}" 
+          alt="${wp.id}" 
+          class="w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-500 ease-out" 
+          loading="lazy"
+        />`;
+
+    const categoryLabel = isVideo ? "Live" : "Static";
+    const badgeHtml = `
+      <span style="position:absolute; top:8px; left:8px; z-index:20; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; background:rgba(0,0,0,0.6); color:#ffffff; pointer-events:none;">
+        ${categoryLabel}
+      </span>
+    `;
+
+    return `
+      <button 
+        data-preset-bg="${wp.id}" 
+        title="${wp.id}"
+        class="group relative aspect-video w-full rounded-2xl overflow-hidden bg-white/[0.02] shadow-xl transition-all duration-300 focus:outline-none hover:shadow-2xl hover:scale-[1.02] active:scale-95"
       >
-      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 ease-out rounded-2xl"></div>
-    </button>
-  `,
-  ).join("");
+        ${mediaHtml}
+        ${badgeHtml}
+        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 ease-out rounded-2xl"></div>
+      </button>
+    `;
+  }).join("");
 }
 
 /* ── WALLPAPER EFFECTS CONTROLS ───────────────────────────── */
@@ -1311,8 +1426,6 @@ function initWallpaperControls() {
 
   applyWallpaperEffects();
 }
-
-
 
 /* ── OFFLINE TOAST ────────────────────────────────────────── */
 function initOfflineToast() {
