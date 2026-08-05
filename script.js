@@ -10,7 +10,7 @@ function safeGet(key) {
 }
 
 // 4K Wallpapers Directory Mapping (Cloudinary-hosted, auto-optimized, and free to use)
-// For optimized video background /w_1280,q_auto:eco,f_auto,fps_24 after the video/upload segment and the version to be entered
+// For optimized video background /w_1920,q_auto:eco,f_auto,fps_30 after the video/upload segment and the version to be entered
 const PRESET_WALLPAPERS = [
   {
     id: "gojo-1",
@@ -42,16 +42,24 @@ const PRESET_WALLPAPERS = [
   },
   {
     id: "sukuna-vs-gojo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_24/v1785789580/sukuna-vs-gojo_dwkzlp.mp4"
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_30/v1785789580/sukuna-vs-gojo_dwkzlp.mp4"
   },
   {
     id: "kokushibo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_24/v1785793601/kokushibo_hq6r3t.mp4"
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_30/v1785793601/kokushibo_hq6r3t.mp4"
   },
   {
     id: "sung-jin-woo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_24/v1785794123/sung-jin-woo_q4bkvh.mp4"
-  }
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785794123/sung-jin-woo_q4bkvh.mp4"
+  },
+  {
+    id: "sung-jin-woo-stare",
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785933141/sung-jin-woo-stare_akcntt.mp4"
+  },
+  {
+    id: "gojo-domain-expansion",
+    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785933193/gojo-domain-expansion_hccc1d.mp4"
+  },
 ];
 
 /* ── State & Initial Boot Fallbacks ───────────────────────── */
@@ -943,11 +951,28 @@ function renderBookmarks() {
     div.innerHTML = `
       <div class="bookmark-circle-wrap">
         <a href="${b.url}" class="bookmark-circle">
-          <img src="https://www.google.com/s2/favicons?domain=${b.url}&sz=128" loading="lazy" onerror="this.style.opacity='0.4'" alt="${b.name}">
+          <img src="https://www.google.com/s2/favicons?domain=${b.url}&sz=128" loading="lazy" onerror="this.style.opacity='0.7'" alt="${b.name}">
         </a>
         <div class="bookmark-actions">
-          <button class="bookmark-edit" data-index="${i}" title="Edit">✎</button>
-          <button class="bookmark-remove" data-index="${i}" title="Remove">✕</button>
+          <button class="bookmark-edit" data-index="${i}" title="Edit">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640"
+                width="12"
+                height="12"
+                fill="white">
+              <path d="M416.9 85.2L372 130.1L509.9 268L554.8 223.1C568.4 209.6 576 191.2 576 172C576 152.8 568.4 134.4 554.8 120.9L519.1 85.2C505.6 71.6 487.2 64 468 64C448.8 64 430.4 71.6 416.9 85.2zM338.1 164L122.9 379.1C112.2 389.8 104.4 403.2 100.3 417.8L64.9 545.6C62.6 553.9 64.9 562.9 71.1 569C77.3 575.1 86.2 577.5 94.5 575.2L222.3 539.7C236.9 535.6 250.2 527.9 261 517.1L476 301.9L338.1 164z"/>
+            </svg>
+
+          </button>
+          <button class="bookmark-remove" data-index="${i}" title="Remove">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640"
+                width="12"
+                height="12"
+                fill="white">
+              <path d="M183.1 137.4C170.6 124.9 150.3 124.9 137.8 137.4C125.3 149.9 125.3 170.2 137.8 182.7L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7L320.5 365.3L457.9 502.6C470.4 515.1 490.7 515.1 503.2 502.6C515.7 490.1 515.7 469.8 503.2 457.3L365.8 320L503.1 182.6C515.6 170.1 515.6 149.8 503.1 137.3C490.6 124.8 470.3 124.8 457.8 137.3L320.5 274.7L183.1 137.4z"/>
+            </svg>
+          </button>
         </div>
       </div>
       <span class="bookmark-label">${b.name}</span>
@@ -965,7 +990,7 @@ function renderBookmarks() {
           <path d="M12 5v14M5 12h14"/>
         </svg>
       </button>
-      <span class="bookmark-label" style="opacity:0.2">Add</span>
+      <span class="bookmark-label" style="opacity:0.3">Add</span>
     `;
     frag.appendChild(addDiv);
   }
@@ -1255,7 +1280,7 @@ function applyBg(url) {
     }
 
     videoEl.style.display = "block";
-    videoEl.play().catch(() => {});
+    videoEl.play().catch(() => { });
 
     // Sidebar thumb: small low-quality static poster, never plays
     if (thumb) {
