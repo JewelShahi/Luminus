@@ -235,7 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSidebar();
   setupBg();
   initUsername();
-  setupAmbientLight();
   renderWallpaperButtons();
   initWallpaperControls();
   applyWallpaperEffects();
@@ -387,34 +386,6 @@ function initGreeting() {
 
 /* ── AMBIENT MOUSE LIGHT ──────────────────────────────────── */
 let mouseMoveController = null;
-
-function setupAmbientLight() {
-  const light = document.getElementById("ambient-light");
-  if (!light || window.matchMedia("(pointer: coarse)").matches) return;
-
-  if (mouseMoveController) mouseMoveController.abort();
-  mouseMoveController = new AbortController();
-
-  let raf = null;
-  window.addEventListener(
-    "mousemove",
-    (e) => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        light.style.setProperty(
-          "--x",
-          `${(e.clientX / window.innerWidth) * 100}%`,
-        );
-        light.style.setProperty(
-          "--y",
-          `${(e.clientY / window.innerHeight) * 100}%`,
-        );
-        raf = null;
-      });
-    },
-    { signal: mouseMoveController.signal, passive: true },
-  );
-}
 
 /* ── WEATHER ──────────────────────────────────────────────── */
 function getWeather() {
