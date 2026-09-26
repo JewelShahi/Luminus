@@ -466,6 +466,106 @@ header > div {
   animation: task-in 0.3s ease-out both;
 }
 
+/* ── NOTES CARD HEIGHT CAP ────────────────────────────────── */
+
+#notes-widget .glass-card,
+#notes-widget-mobile .glass-card {
+  flex-shrink: 0;
+}
+
+#notes-widget > div,
+#notes-widget-mobile > div {
+  align-self: flex-end; /* keep header anchored to bottom-fixed container properly */
+}
+
+/* ── TASK LOG COLLAPSE ────────────────────────────────────── */
+
+.task-log-chevron {
+  transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Rotating 180° turns the ^ into a ⌄ — no separate icon needed */
+.task-log-chevron.open {
+  transform: rotate(180deg);
+}
+
+#task-list,
+#task-list-mobile {
+  max-height: 0 !important;
+  opacity: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  visibility: hidden;
+  transition:
+    max-height 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 250ms ease,
+    padding 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 380ms;
+}
+
+#task-list.open,
+#task-list-mobile.open {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    max-height 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 250ms ease,
+    padding 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 0s;
+}
+
+#task-list.open {
+  max-height: 150px !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  overflow-y: auto !important;
+}
+
+#task-list-mobile.open {
+  max-height: 100px !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  overflow-y: auto !important;
+}
+
+/* ── TASK EDIT BUTTON ─────────────────────────────────────── */
+
+.task-item .task-edit {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.35);
+  transition:
+    opacity 150ms ease,
+    background 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.task-item:hover .task-edit {
+  opacity: 1;
+}
+
+.task-item .task-edit:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.1);
+}
+
 @keyframes task-in {
   from {
     opacity: 0;

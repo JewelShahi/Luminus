@@ -241,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initWidgetVisibility();
   setupEventDelegation();
   initOfflineToast();
+  initTaskLogCollapse();
 });
 
 /* ── USERNAME ─────────────────────────────────────────────── */
@@ -792,16 +793,18 @@ function setupEventDelegation() {
 
   // Task list click events
   const handleTaskListClick = (e) => {
-    const target = e.target;
-    const taskItem = target.closest(".task-item");
-    if (!taskItem) return;
-    const index = parseInt(taskItem.dataset.index, 10);
-    if (target.classList.contains("task-del")) {
-      deleteTask(index);
-    } else if (target.type === "checkbox") {
-      toggleTask(index);
-    }
-  };
+  const target = e.target;
+  const taskItem = target.closest(".task-item");
+  if (!taskItem) return;
+  const index = parseInt(taskItem.dataset.index, 10);
+  if (target.closest(".task-del")) {
+    deleteTask(index);
+  } else if (target.closest(".task-edit")) {
+    openEditTaskModal(index);
+  } else if (target.type === "checkbox") {
+    toggleTask(index);
+  }
+};
 
   document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
   document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
@@ -996,6 +999,11 @@ function renderTasks() {
         <div class="task-item group" data-index="${i}">
           <input type="checkbox" ${t.done ? "checked" : ""} class="checkbox checkbox-primary checkbox-xs border-white/20 rounded flex-shrink-0">
           <span class="text-[11px] font-medium transition-all flex-1 ${t.done ? "line-through opacity-20" : "opacity-65"}">${t.text}</span>
+          <button class="task-edit" title="Edit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="10" height="10" fill="currentColor">
+              <path d="M416.9 85.2L372 130.1L509.9 268L554.8 223.1C568.4 209.6 576 191.2 576 172C576 152.8 568.4 134.4 554.8 120.9L519.1 85.2C505.6 71.6 487.2 64 468 64C448.8 64 430.4 71.6 416.9 85.2zM338.1 164L122.9 379.1C112.2 389.8 104.4 403.2 100.3 417.8L64.9 545.6C62.6 553.9 64.9 562.9 71.1 569C77.3 575.1 86.2 577.5 94.5 575.2L222.3 539.7C236.9 535.6 250.2 527.9 261 517.1L476 301.9L338.1 164z"/>
+            </svg>
+          </button>
           <button class="task-del">✕</button>
         </div>
       `,
@@ -1027,6 +1035,47 @@ function clearAllTasks() {
 
 function saveTasks() {
   localStorage.setItem("gx_tasks", JSON.stringify(state.tasks));
+}
+
+/* ── TASK LOG COLLAPSE ────────────────────────────────────── */
+
+function initTaskLogCollapse() {
+  const configs = [
+    {
+      toggleId: "task-log-toggle",
+      chevronId: "task-log-chevron",
+      listId: "task-list",
+      key: "gx_tasklog_open",
+    },
+    {
+      toggleId: "task-log-toggle-mobile",
+      chevronId: "task-log-chevron-mobile",
+      listId: "task-list-mobile",
+      key: "gx_tasklog_open_mobile",
+    },
+  ];
+
+  configs.forEach(({ toggleId, chevronId, listId, key }) => {
+    const toggleBtn = document.getElementById(toggleId);
+    const chevron = document.getElementById(chevronId);
+    const list = document.getElementById(listId);
+    if (!toggleBtn || !chevron || !list) return;
+
+    const setState = (open) => {
+      list.classList.toggle("open", open);
+      chevron.classList.toggle("open", open);
+      localStorage.setItem(key, String(open));
+    };
+
+    // Default: closed on first visit, otherwise restore last state
+    const stored = localStorage.getItem(key);
+    setState(stored === "true");
+
+    toggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setState(!list.classList.contains("open"));
+    });
+  });
 }
 
 /* ── MODALS ───────────────────────────────────────────────── */
@@ -1120,6 +1169,35 @@ function openTaskModal() {
     const text = document.getElementById("task-text")?.value.trim();
     if (!text) return;
     state.tasks.push({ text, done: false });
+    saveTasks();
+    renderTasks();
+    closeModal();
+  };
+
+  requestAnimationFrame(() => {
+    openModal();
+    setTimeout(() => document.getElementById("task-text")?.focus(), 200);
+  });
+}
+
+function openEditTaskModal(index) {
+  const task = state.tasks[index];
+  if (!task) return;
+
+  const modalTitle = document.getElementById("modal-title");
+  const modalInputs = document.getElementById("modal-inputs");
+  const modalConfirm = document.getElementById("modal-confirm");
+  if (!modalTitle || !modalInputs || !modalConfirm) return;
+
+  modalTitle.textContent = "EDIT TASK";
+  modalInputs.innerHTML = `<input type="text" id="task-text" placeholder="What needs to be done?" autocomplete="off" value="${task.text}">`;
+  modalConfirm.textContent = "Save Changes";
+
+  modalConfirm.onclick = () => {
+    const text = document.getElementById("task-text")?.value.trim();
+    if (!text) return shakeInput();
+
+    state.tasks[index].text = text;
     saveTasks();
     renderTasks();
     closeModal();
