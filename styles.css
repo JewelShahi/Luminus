@@ -521,7 +521,7 @@ header > div {
 }
 
 #task-list.open {
-  max-height: 150px !important;
+  max-height: 200px !important;
   padding-top: 16px !important;
   padding-bottom: 16px !important;
   overflow-y: auto !important;
