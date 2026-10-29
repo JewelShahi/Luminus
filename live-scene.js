@@ -1,32 +1,32 @@
 /* ═══════════════════════════════════════════════════════════
    LUMINUS — live-scene.js
    Animated backgrounds:
-     GPU (WebGL2 shaders): Aurora · Lava Lamp (metaballs) · Ink (fluid sim)
-                           Nebula · Ripples (wave sim)
+     GPU (WebGL2 shaders): Aurora · Lava Lamp · Ink · Nebula · Ripples
      Canvas 2D:            Star Field · Fireflies · Constellation
 
-   Quality + low memory:
-   • GPU scenes compute every pixel mathematically → smooth edges,
-     no visible pixels, and almost no CPU/RAM use.
-   • A fresh canvas per scene; the old GPU context is released, so
-     switching scenes never piles up memory.
-   • Tiny dithering removes color banding in dark gradients.
-   • Loop pauses when the tab is hidden; 60fps (smooth) / 30fps (battery).
-   • If WebGL2 is not available, GPU scenes fall back to Star Field.
+   Design notes:
+   • GPU scenes compute every pixel mathematically → smooth edges and
+     almost no CPU/RAM use. Light dithering removes color banding.
+   • Every scene gets a fresh canvas and the old GPU context is released,
+     so switching scenes never piles up memory.
+   • The loop pauses when the tab is hidden; 60 fps (smooth) / 30 fps (eco).
+   • Without WebGL2, GPU scenes fall back to Star Field.
 
    CONTENTS
-   01. Helpers (canvas, color, noise)
+   01. Helpers
    02. Time-of-day palette
-   03. WebGL helpers (programs, uniforms, framebuffers)
-   04. Shared GLSL (noise)
-   05. Scene: Aurora (neon northern lights, endless ping-pong motion)
-   06. Scene: Lava Lamp (heat + connection physics)
-   08. Scene: Ink (fluid simulation)
-   09. Scene: Star Field
-   10. Scene: Fireflies
-   10b–d. Scenes: Nebula · Ripples · Constellation
-   11. Engine (loop, sizing, cursor, palette)
-   12. Public API
+   03. WebGL helpers
+   04. Shared GLSL + shader-scene factory
+   05. Scene: Aurora
+   06. Scene: Lava Lamp
+   07. Scene: Ink
+   08. Scene: Star Field
+   09. Scene: Fireflies
+   10. Scene: Nebula
+   11. Scene: Ripples
+   12. Scene: Constellation
+   13. Engine
+   14. Public API
 ═════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
@@ -49,7 +49,7 @@
     return `rgba(${r | 0},${g | 0},${b | 0},${a})`;
   }
 
-  // Tiny seeded random, so layouts stay the same after a resize
+  // Seeded random: layouts stay the same after a resize
   function seeded(seed) {
     let s = seed >>> 0;
     return () => {
@@ -58,7 +58,7 @@
     };
   }
 
-  // Smooth 1D value noise (0..1) — drives "unpredictable but organic" motion
+  // Smooth 1D value noise (0..1) for organic motion
   function hash1(n) {
     const x = Math.sin(n * 127.1) * 43758.5453;
     return x - Math.floor(x);
@@ -70,7 +70,7 @@
     return hash1(i) * (1 - u) + hash1(i + 1) * u;
   }
 
-  // palette entry i → [r, g, b] in 0..1 for shaders
+  // Palette entry i → [r, g, b] in 0..1 for shaders
   function pal(e, i) {
     const c = e.palette[i] || { r: 59, g: 130, b: 246 };
     return [c.r / 255, c.g / 255, c.b / 255];
@@ -247,7 +247,21 @@ out vec4 fragColor;
     gl.deleteFramebuffer(f.fb);
   }
 
-  /* ══ 04. SHARED GLSL ═══════════════════════════════════════ */
+  // Can this browser render to half-float textures?
+  function supportsFloatTargets(gl) {
+    if (
+      !gl.getExtension("EXT_color_buffer_float") &&
+      !gl.getExtension("EXT_color_buffer_half_float")
+    )
+      return false;
+    const test = createFBO(gl, 4, 4);
+    const ok =
+      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+    deleteFBO(gl, test);
+    return ok;
+  }
+
+  /* ══ 04. SHARED GLSL + SHADER-SCENE FACTORY ════════════════ */
   const GLSL_NOISE = `
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -272,7 +286,7 @@ vec3 dither(vec3 c) {
 }
 `;
 
-  // Standard uniforms every single-pass shader scene receives
+  // Uniforms every single-pass shader scene receives
   const GLSL_STD_UNIFORMS = `
 uniform vec2 uRes;
 uniform float uTime;
@@ -281,9 +295,11 @@ uniform float uStrength; // 0 = cursor off, 1 = on
 uniform vec3 uC0, uC1, uC2;
 `;
 
-  // Factory for one-pass shader scenes (Aurora, Lava, Nebula)
+  // Factory for one-pass shader scenes (Aurora, Lava, Nebula).
+  // opts: frag, resolution, maxDpr, init(e), update(e, dt, t) → extra uniforms,
+  //       onClick(e, x, y) (optional; x/y are 0..1, y from the top)
   function shaderScene(opts) {
-    return {
+    const scene = {
       type: "gl",
       resolution: opts.resolution,
       maxDpr: opts.maxDpr ?? 1.5,
@@ -318,23 +334,27 @@ uniform vec3 uC0, uC1, uC2;
         this.prog = null;
       },
     };
+    if (opts.onClick) {
+      scene.onClick = function (e, x, y) {
+        return opts.onClick.call(this, e, x, y);
+      };
+    }
+    return scene;
   }
 
-  /* ══ 05. SCENE: AURORA (neon northern lights) ══════════════
-     • Neon northern-lights palette: green / lime / teal / cyan low,
-       pink → violet high up (like real auroras), lightly tinted by
-       your theme (AURORA_CFG.themeMix).
-     • Dense: 5 overlapping curtains with curling folds, fine rays and
-       a soft background wash, so there is never an empty gap.
-     • Endless + smooth: time runs forward, then smoothly eases into
-       reverse and back again (ping-pong with rounded turns). No restart,
-       no jump, no "snap back" — and numbers stay small forever, so the
-       noise never degrades after the tab has been open for hours. */
+  /* ══ 05. SCENE: AURORA ═════════════════════════════════════
+     Neon northern lights: green / lime / teal / cyan low, pink → violet
+     high up, lightly tinted by the theme (AURORA_CFG.themeMix).
+     Dense: overlapping curtains with curling folds, fine rays and a soft
+     wash, so there is never an empty gap.
+     Endless: time runs forward, then eases into reverse and back again
+     (rounded turns, no jump), so numbers stay small and the noise never
+     degrades after hours. */
   const AURORA_CFG = {
     layers: 5, // curtains (3–7). More = denser, slightly heavier
     loopSeconds: 600, // seconds before the motion smoothly reverses
     themeMix: 0.15, // 0 = pure neon, 1 = pure theme colors
-    brightness: 0.8, // overall glow strength (lower = easier on the eyes)
+    brightness: 0.8, // overall glow strength
   };
 
   const AuroraScene = shaderScene({
@@ -360,13 +380,13 @@ const vec3 NEON[6] = vec3[6](
 const vec3 HIGH_A = vec3(1.00, 0.18, 0.70); // neon pink
 const vec3 HIGH_B = vec3(0.62, 0.22, 1.00); // electric violet
 
-// forward → smooth reverse → forward… (rounded turns, never a jump)
+// forward → smooth reverse → forward (rounded turns, never a jump)
 float loopTime(float t) {
   float a = cos(PI * t / LOOP);
   return LOOP * acos(clamp(0.997 * a, -1.0, 1.0)) / PI;
 }
 
-// thin vertical rays: sharp, high-frequency noise only along x
+// thin vertical rays: high-frequency noise along x only
 float rays(float x, float t, float seed) {
   float r = 0.0;
   r += noise(vec2(x * 38.0 + seed, t * 0.35)) * 0.5;
@@ -385,7 +405,7 @@ void main() {
   // deep night sky
   vec3 col = mix(vec3(0.003, 0.006, 0.014), vec3(0.010, 0.012, 0.035), smoothstep(0.0, 1.0, uv.y));
 
-  // crisp stars (round, resolution independent)
+  // round, resolution-independent stars
   vec2 g = vec2(x, uv.y) * 140.0;
   vec2 cell = floor(g);
   float h = hash(cell);
@@ -396,7 +416,7 @@ void main() {
     col += smoothstep(1.6, 0.0, d) * 0.6 * tw * smoothstep(0.3, 0.8, uv.y);
   }
 
-  // soft continuous wash behind the curtains (fills every gap)
+  // soft wash behind the curtains (fills every gap)
   float wash = fbm(vec2(x * 0.7 + t * 0.02, uv.y * 1.5 - t * 0.015));
   col += mix(NEON[0], NEON[3], wash) * 0.07 * BRIGHT * exp(-pow(uv.y - 0.38, 2.0) * 7.0);
 
@@ -424,7 +444,7 @@ void main() {
     float d = uv.y - edge;
     float height = 0.28 + 0.18 * fbm(vec2(xw * 1.3 - t * 0.03, fi * 7.0));
 
-    // sharp lower edge (anti-aliased), long soft fade upward
+    // sharp anti-aliased lower edge, long soft fade upward
     float aa = 1.5 / uRes.y;
     float lower = smoothstep(-0.014 - aa, 0.004, d);
     float upper = exp(-max(d, 0.0) / height * 2.0);
@@ -445,54 +465,90 @@ void main() {
   // horizon glow
   col += NEON[0] * 0.05 * BRIGHT * exp(-uv.y * 9.0);
 
-  // gentle glow around the cursor
+  // glow around the cursor
   vec2 dm = vec2(x, uv.y) - m;
   col += mix(NEON[1], vec3(1.0), 0.3) * 0.04 * exp(-dot(dm, dm) * 14.0) * uStrength;
 
-  col = 1.0 - exp(-col * 1.35); // soft tone mapping (no clipping, no harsh white)
+  col = 1.0 - exp(-col * 1.35); // soft tone mapping: no clipping, no harsh white
   fragColor = vec4(dither(col), 1.0);
 }`,
   });
 
   /* ══ 06. SCENE: LAVA LAMP ══════════════════════════════════
-     A real lava lamp (GPU metaballs, crisp anti-aliased edges):
-     • 7 wax blobs (LAVA_CFG.count, 6–8) + a hot wax pool at the bottom
-     • HEAT: the bottom heats wax (it rises), the top cools it (it sinks),
-       and wax slowly cools while travelling → no two cycles look alike
-     • CONNECTION: nearby blobs attract each other and melt together
-       (gooey necks); merged blobs share heat, and when one gets hotter
-       it stretches the neck and pinches off again
-     • blobs stretch tall while moving fast, like real wax
-     • your cursor is a soft heat source: blobs drift toward it and warm up
-
-     Fixes:
-     • ALL wax is always clearly visible: wax colors are forced to a
-       minimum brightness, so cool blobs no longer turn dark and vanish
-       into the background (that was the "invisible chunks").
-     • One wax color per lamp (cool → hot only changes the shade a little),
-       so blobs no longer look like different sizes / magnified.
-     • Blobs stay fully inside the screen (no more cut-off edges at the
-       top or sides), and the bottom pool blends smoothly (no flat crease).
-     • Stretching keeps the same amount of wax (no sudden growing). */
+     GPU metaballs with crisp anti-aliased edges, driven by a small
+     physics simulation on the CPU:
+     • 6–10 wax blobs with random sizes and non-overlapping random start
+       positions, plus a rolling hot wax pool at the bottom.
+     • Heat: the bottom heats wax (it rises), the top cools it (it sinks).
+     • Connection: nearby blobs attract and melt together; touching blobs
+       share heat.
+     • Sphere zone: blobs only stretch in the bottom 30% of the lamp and
+       are perfectly round above it.
+     • Jelly: the stretch is a spring-damper, so blobs wobble and settle.
+     • Random movement: smooth noise wandering plus random small kicks.
+     • Cursor: within `mouseRangePx` of a blob's edge, the blob backs away
+       at a constant slow speed and jiggles ("attract" mode pulls instead).
+     • Click: a blob (or a junction between melted blobs) explodes into
+       3–5 smaller blobs with the same total wax. Fragments later drift
+       together and melt back into bigger blobs. */
   const LAVA_CFG = {
-    count: 7, // 6–8 looks most like a real lamp (max 8)
+    countMin: 6, // random start count (min)
+    countMax: 10, // random start count (max)
+    maxBlobs: 22, // hard cap including explosion fragments (≤ LAVA_MAX)
+    seed: null, // null = new layout every load, or a number to freeze it
+    radiusMin: 0.04, // smallest blob (1 = screen height)
+    radiusMax: 0.115, // biggest blob
     buoyancy: 0.45, // how strongly hot wax rises / cold wax sinks
     cohesion: 0.6, // how strongly blobs pull together
     viscosity: 1.2, // liquid drag (higher = slower, thicker)
-    mouse: 0.35, // cursor pull (0 = off)
-    // wax colors: cool (top) → hot (bottom). Classic lava-lamp neon.
+    wander: 0.09, // random drifting strength
+    kicks: 0.18, // random pushes per second per blob
+
+    // sphere zone: stretch is allowed below sphereY, fully round above it
+    sphereY: 0.3, // 30% from the bottom
+    stretchFrom: 0.1, // below this height stretch is at full strength
+    maxStretch: 0.3, // max extra stretch (0.3 = 30% taller)
+
+    // jelly spring
+    springK: 90, // stiffness (higher = faster wobble)
+    springDamp: 5, // damping in the stretch zone (lower = jigglier)
+    springDampRound: 11, // damping in the sphere zone (settles round fast)
+
+    // cursor
+    mouse: 1, // 0 = off
+    mouseMode: "retreat", // "retreat" (back away) or "attract"
+    mouseRangePx: 20, // reaction distance from the blob's edge, in px
+    mouseSpeed: 0.1, // constant speed (screen heights per second)
+    mouseGrip: 6, // how quickly the blob reaches that speed
+    jiggle: 12, // jelly shake while the cursor is near
+
+    // click explosion
+    explode: true, // false = disable click explosions
+    splitMin: 3, // fragments per explosion (min)
+    splitMax: 5, // fragments per explosion (max)
+    splitMinRadius: 0.05, // smaller blobs only wobble, they don't split
+    blastSpeed: 0.45, // how fast fragments fly apart
+    shockRadius: 0.3, // nearby blobs get pushed within this distance
+    clickTolerance: 1.25, // clicks work up to this × radius from a center
+
+    // fragments melting back together
+    mergeAge: 5, // seconds before fragments may re-merge
+    mergeBoost: 2.5, // extra pull between fragments
+    mergeDist: 0.62, // merge when closer than this × (r1 + r2)
+    fragDone: 0.085, // fragments that grow past this become normal blobs
+
+    // wax colors: cool (top) → hot (bottom)
     coolColor: "#ff2d95", // neon pink
     hotColor: "#ff7a18", // neon orange
     themeMix: 0.25, // 0 = only the colors above, 1 = only theme colors
     minBrightness: 0.5, // wax is never darker than this (0–1)
   };
-  const LAVA_MAX = 8; // must match the shader arrays
+  const LAVA_MAX = 24; // must be ≥ LAVA_CFG.maxBlobs (shader array size)
 
-  // lift a color so its brightness is at least `min` (keeps the hue)
+  // Lifts a color to at least brightness `min`, keeping its hue
   function liftColor(rgb, min) {
     const lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
     if (lum >= min) return rgb;
-    // blend toward a bright version of the same hue
     const max = Math.max(rgb.r, rgb.g, rgb.b, 1);
     const vivid = {
       r: (rgb.r / max) * 255,
@@ -500,15 +556,172 @@ void main() {
       b: (rgb.b / max) * 255,
     };
     const vlum = (0.299 * vivid.r + 0.587 * vivid.g + 0.114 * vivid.b) / 255;
-    let out = vivid;
     if (vlum < min) {
       const t = (min - vlum) / Math.max(1e-3, 1 - vlum);
-      out = Color.mixRgb(vivid, { r: 255, g: 255, b: 255 }, t);
-    } else {
-      const t = (min - lum) / Math.max(1e-3, vlum - lum);
-      out = Color.mixRgb(rgb, vivid, Math.min(1, t));
+      return Color.mixRgb(vivid, { r: 255, g: 255, b: 255 }, t);
     }
-    return out;
+    const t = (min - lum) / Math.max(1e-3, vlum - lum);
+    return Color.mixRgb(rgb, vivid, Math.min(1, t));
+  }
+
+  const lavaSmooth = (a, b, x) => {
+    const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+
+  function lavaMakeBlob(S, r0) {
+    S.nextSeed += 9.17;
+    return {
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      ax: 0,
+      ay: 0,
+      r0, // base radius (before the portrait-screen scale)
+      r: r0 * S.sizeK,
+      heat: 0.5,
+      buoy: 0.75 + S.rnd() * 0.5, // every blob rises/sinks a bit differently
+      s: 1, // stretch (spring position)
+      sv: 0, // stretch velocity
+      near: false,
+      age: 0,
+      frag: false, // explosion fragment (may melt back together)
+      seed: S.nextSeed + S.rnd() * 5,
+    };
+  }
+
+  // Click at (cx, cy) in lamp coordinates → explode every blob under it
+  function lavaClick(S, cx, cy) {
+    const C = LAVA_CFG;
+    const B = S.blobs;
+    let best = 0;
+    let bestI = -1;
+    let sum = 0;
+
+    // wax contributed by each blob at the click (same formula as the
+    // shader, so a click on a melted junction hits both blobs)
+    const contrib = B.map((b, i) => {
+      const dx = (cx - b.x) * b.s;
+      const dy = (cy - b.y) / b.s;
+      const r2 = b.r * b.r;
+      const c = r2 / (dx * dx + dy * dy + r2 * 0.15);
+      sum += c;
+      if (c > best) {
+        best = c;
+        bestI = i;
+      }
+      return c;
+    });
+    if (bestI < 0) return;
+
+    let hit = sum >= 0.75;
+    if (!hit) {
+      const nb = B[bestI];
+      hit = Math.hypot(cx - nb.x, cy - nb.y) < nb.r * C.clickTolerance;
+    }
+    if (!hit) return;
+
+    const targets = B.filter(
+      (_, i) => i === bestI || (contrib[i] >= 0.25 && contrib[i] >= best * 0.3),
+    );
+    for (const t of targets) lavaExplode(S, t, cx, cy);
+  }
+
+  function lavaExplode(S, b, cx, cy) {
+    const C = LAVA_CFG;
+    const B = S.blobs;
+    const rnd = S.rnd;
+
+    // shockwave: push and shake the neighbours
+    for (const o of B) {
+      if (o === b) continue;
+      const dx = o.x - b.x;
+      const dy = o.y - b.y;
+      const d = Math.hypot(dx, dy) + 1e-5;
+      if (d > C.shockRadius) continue;
+      const k = 1 - d / C.shockRadius;
+      o.vx += (dx / d) * C.blastSpeed * 0.6 * k;
+      o.vy += (dy / d) * C.blastSpeed * 0.6 * k;
+      o.sv += (rnd() < 0.5 ? -1 : 1) * 3 * k;
+    }
+
+    const room = C.maxBlobs - B.length + 1; // the parent frees one slot
+    const want = C.splitMin + Math.floor(rnd() * (C.splitMax - C.splitMin + 1));
+    const k = Math.min(room, want);
+
+    // too small or no room: wobble hard and move away from the click
+    if (b.r0 < C.splitMinRadius || k < 2) {
+      const dx = b.x - cx;
+      const dy = b.y - cy;
+      const d = Math.hypot(dx, dy) + 1e-5;
+      b.vx += (dx / d) * C.blastSpeed * 0.5;
+      b.vy += (dy / d) * C.blastSpeed * 0.5;
+      b.sv += 4;
+      return;
+    }
+
+    // random fragment sizes that add up to the parent's wax (area kept)
+    const w = [];
+    let sum = 0;
+    for (let i = 0; i < k; i++) {
+      const x = 0.6 + rnd() * 0.9;
+      w.push(x);
+      sum += x;
+    }
+    const a0 = rnd() * Math.PI * 2;
+    B.splice(B.indexOf(b), 1);
+    for (let i = 0; i < k; i++) {
+      const ang = a0 + (i / k) * Math.PI * 2 + (rnd() - 0.5) * 0.8;
+      const c = lavaMakeBlob(S, b.r0 * Math.sqrt(w[i] / sum));
+      const off = b.r * 0.55;
+      c.x = b.x + Math.cos(ang) * off;
+      c.y = b.y + Math.sin(ang) * off;
+      const sp = C.blastSpeed * (0.7 + rnd() * 0.6);
+      c.vx = b.vx + Math.cos(ang) * sp;
+      c.vy = b.vy + Math.sin(ang) * sp;
+      c.heat = Math.min(1, b.heat + 0.15);
+      c.sv = (rnd() - 0.5) * 6;
+      c.frag = true;
+      B.push(c);
+    }
+  }
+
+  // Fragments that drifted together melt back into one blob
+  function lavaMergePass(S) {
+    const C = LAVA_CFG;
+    const B = S.blobs;
+    for (let i = 0; i < B.length; i++) {
+      const a = B[i];
+      if (!a.frag || a.age < C.mergeAge) continue;
+      for (let j = 0; j < B.length; j++) {
+        if (B.length <= C.countMin) return;
+        if (j === i) continue;
+        const b = B[j];
+        if (b.age < C.mergeAge) continue;
+        const r0 = Math.sqrt(a.r0 * a.r0 + b.r0 * b.r0);
+        if (r0 > C.radiusMax) continue;
+        const d = Math.hypot(b.x - a.x, b.y - a.y);
+        if (d > (a.r + b.r) * C.mergeDist) continue;
+
+        // merge b into a: area, momentum and heat are shared
+        const ma = a.r0 * a.r0;
+        const mb = b.r0 * b.r0;
+        const m = ma + mb;
+        a.x = (a.x * ma + b.x * mb) / m;
+        a.y = (a.y * ma + b.y * mb) / m;
+        a.vx = (a.vx * ma + b.vx * mb) / m;
+        a.vy = (a.vy * ma + b.vy * mb) / m;
+        a.heat = (a.heat * ma + b.heat * mb) / m;
+        a.r0 = r0;
+        a.r = r0 * S.sizeK;
+        a.sv += 2.5;
+        a.frag = a.frag && b.frag && r0 < C.fragDone;
+        B.splice(j, 1);
+        if (j < i) i--;
+        j--;
+      }
+    }
   }
 
   const LavaScene = shaderScene({
@@ -530,13 +743,12 @@ vec2 field(vec2 p) {
     float s = uS[i].x;
     d.y /= s;          // taller…
     d.x *= s;          // …and thinner (same amount of wax)
-    // softened falloff: smooth all the way to the center
     float r2 = uB[i].z * uB[i].z;
     float c = r2 / (dot(d, d) + r2 * 0.15);
     v += c;
     h += c * uB[i].w;
   }
-  // hot wax pool along the bottom, gently rolling (soft cap → no crease)
+  // hot wax pool along the bottom, gently rolling
   float wave = 0.010 * sin(p.x * 6.0 + uTime * 0.35) + 0.007 * sin(p.x * 13.0 - uTime * 0.27);
   float pool = 1.45 * exp(-(p.y - wave) / 0.05);
   pool = pool / (1.0 + pool / 6.0);
@@ -550,7 +762,7 @@ void main() {
   vec2 p = vec2(uv.x * uAsp, uv.y);
   float t = uTime;
 
-  // very soft wobble so wax edges ripple a little (small → never tears)
+  // very soft wobble so wax edges ripple a little
   vec2 q = p + vec2(noise(p * 3.0 + vec2(t * 0.2, 0.0)) - 0.5,
                     noise(p * 3.0 + vec2(5.2, -t * 0.18)) - 0.5) * 0.014;
 
@@ -562,11 +774,11 @@ void main() {
   vec2 g = vec2(field(q + vec2(e, 0.0)).x - f, field(q + vec2(0.0, e)).x - f) / e;
   vec3 n = normalize(vec3(-g / (f * f + 0.5) * 0.03, 1.0));
 
-  // anti-aliased edge (smooth at any resolution)
+  // anti-aliased edge
   float aa = fwidth(f) * 1.2 + 1e-4;
   float edge = smoothstep(1.0 - aa, 1.0 + aa, f);
 
-  // one wax color, shade follows heat (always bright)
+  // one wax color; the shade follows heat
   float heat = clamp(F.y, 0.0, 1.0);
   vec3 wax = mix(uCool, uHot, smoothstep(0.15, 0.85, heat));
 
@@ -589,24 +801,38 @@ void main() {
   fragColor = vec4(dither(col), 1.0);
 }`,
     init() {
-      const rnd = seeded(2024);
-      const n = Math.max(6, Math.min(LAVA_MAX, LAVA_CFG.count));
-      this.blobs = Array.from({ length: n }, (_, i) => ({
-        x: 0.1 + rnd() * 0.8, // 0..1 share of the width (scaled on first frame)
-        y: 0.15 + rnd() * 0.7,
-        vx: 0,
-        vy: 0,
-        r0: 0.065 + rnd() * 0.025, // similar sizes → no "magnified" blob
-        r: 0,
-        heat: rnd(),
-        s: 1,
-        seed: i * 9.17 + rnd() * 5,
-      }));
+      const seed =
+        LAVA_CFG.seed != null ? LAVA_CFG.seed : (Math.random() * 1e9) | 0;
+      const rnd = seeded(seed);
+      this.rnd = rnd;
+      this.nextSeed = 0;
+      this.sizeK = 1;
+      this.click = null;
+
+      const lo = Math.max(1, LAVA_CFG.countMin);
+      const hi = Math.min(LAVA_MAX, LAVA_CFG.countMax);
+      const n = lo + Math.floor(rnd() * (hi - lo + 1));
+      const span = LAVA_CFG.radiusMax - LAVA_CFG.radiusMin;
+
+      this.blobs = Array.from({ length: n }, () => {
+        const b = lavaMakeBlob(
+          this,
+          LAVA_CFG.radiusMin + Math.pow(rnd(), 1.15) * span,
+        );
+        b.vx = (rnd() - 0.5) * 0.05;
+        b.vy = (rnd() - 0.5) * 0.05;
+        b.heat = rnd();
+        return b;
+      });
       this.asp = 0;
+      this.placed = false;
       this.bufB = new Float32Array(LAVA_MAX * 4);
       this.bufS = new Float32Array(LAVA_MAX * 4);
       this.time = 0;
       this.palRef = null;
+    },
+    onClick(e, x, y) {
+      if (LAVA_CFG.explode) this.click = { x, y };
     },
     update(e, dt) {
       const asp = e.w / e.h;
@@ -615,37 +841,73 @@ void main() {
       const my = 1 - p.ry;
       const mouseOn = p.inside ? p.strength : 0;
       const B = this.blobs;
-      const n = B.length;
+      const rnd = this.rnd;
+      const C = LAVA_CFG;
 
       // wax colors (recomputed only when the palette changes)
       if (this.palRef !== e.palette) {
         this.palRef = e.palette;
         const mixC = (hex, themeRgb) =>
           liftColor(
-            Color.mixRgb(Color.hexToRgb(hex), themeRgb, LAVA_CFG.themeMix),
-            LAVA_CFG.minBrightness,
+            Color.mixRgb(Color.hexToRgb(hex), themeRgb, C.themeMix),
+            C.minBrightness,
           );
-        const cool = mixC(LAVA_CFG.coolColor, e.palette[2] || e.palette[0]);
-        const hot = mixC(LAVA_CFG.hotColor, e.palette[0]);
+        const cool = mixC(C.coolColor, e.palette[2] || e.palette[0]);
+        const hot = mixC(C.hotColor, e.palette[0]);
         this.cool = [cool.r / 255, cool.g / 255, cool.b / 255];
         this.hot = [hot.r / 255, hot.g / 255, hot.b / 255];
       }
 
-      // screen shape changed (first frame, rotation, resize) → keep blobs in
-      // the same relative spot and resize them for narrow screens
+      // screen shape changed (first frame, rotation, resize)
       if (this.asp !== asp) {
-        const k = this.asp ? asp / this.asp : asp; // first frame: x was 0..1
-        const sizeK = Math.min(1, Math.max(0.6, asp)); // smaller blobs in portrait
+        const k = this.asp ? asp / this.asp : 1;
+        this.sizeK = Math.min(1, Math.max(0.6, asp)); // smaller blobs in portrait
         for (const b of B) {
           b.x *= k;
-          b.r = b.r0 * sizeK;
+          b.r = b.r0 * this.sizeK;
         }
         this.asp = asp;
       }
 
+      // first frame: random, non-overlapping start positions
+      if (!this.placed) {
+        this.placed = true;
+        const placedList = [];
+        for (const b of B) {
+          let bx = 0;
+          let by = 0;
+          for (let tries = 0; tries < 60; tries++) {
+            bx = b.r * 1.2 + rnd() * Math.max(0.01, asp - b.r * 2.4);
+            by = 0.12 + rnd() * Math.max(0.01, 0.76 - b.r * 2);
+            let ok = true;
+            for (const o of placedList) {
+              if (Math.hypot(bx - o.x, by - o.y) < (b.r + o.r) * 1.15) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok) break;
+          }
+          b.x = bx;
+          b.y = by;
+          placedList.push(b);
+        }
+      }
+
+      if (this.click) {
+        const { x, y } = this.click;
+        this.click = null;
+        lavaClick(this, x * asp, 1 - y);
+      }
+
+      const n = B.length;
+
       // small fixed steps → stable physics at any speed
       const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
       const h = dt / steps;
+      const rangeU = C.mouseRangePx / Math.max(1, e.h); // px → screen-height units
+      const sign = C.mouseMode === "attract" ? -1 : 1; // +1 = away from cursor
+
       for (let s = 0; s < steps; s++) {
         this.time += h;
         const T = this.time;
@@ -653,6 +915,7 @@ void main() {
         for (const b of B) {
           b.ax = 0;
           b.ay = 0;
+          b.age += h;
 
           // heat: bottom heats, top cools, slow cooling while travelling
           if (b.y < 0.2) b.heat += 0.28 * h;
@@ -661,18 +924,22 @@ void main() {
           b.heat += (vnoise(T * 0.15 + b.seed) - 0.5) * 0.05 * h;
 
           // buoyancy: hot rises, cold sinks
-          b.ay += (b.heat - 0.5) * LAVA_CFG.buoyancy;
-          // gentle sideways wandering
-          b.ax += (vnoise(T * 0.08 + b.seed * 2.3) - 0.5) * 0.06;
+          b.ay += (b.heat - 0.5) * C.buoyancy * b.buoy;
 
-          // cursor = soft heat source that blobs drift toward
-          if (mouseOn > 0 && LAVA_CFG.mouse > 0) {
-            const dx = mx - b.x;
-            const dy = my - b.y;
-            const near = Math.exp(-(dx * dx + dy * dy) / 0.04) * mouseOn;
-            b.ax += dx * LAVA_CFG.mouse * near;
-            b.ay += dy * LAVA_CFG.mouse * near;
-            b.heat += 0.25 * near * h;
+          // random wandering (big blobs are lazier)
+          const lazy = 0.075 / Math.max(0.04, b.r);
+          b.ax += (vnoise(T * 0.1 + b.seed * 2.3) - 0.5) * C.wander * lazy;
+          b.ay +=
+            (vnoise(T * 0.09 + b.seed * 3.7 + 40) - 0.5) *
+            C.wander *
+            0.6 *
+            lazy;
+
+          // random kicks so no two paths ever repeat
+          if (rnd() < C.kicks * h) {
+            b.vx += (rnd() - 0.5) * 0.08;
+            b.vy += (rnd() - 0.5) * 0.05;
+            b.sv += (rnd() - 0.5) * 0.8;
           }
         }
 
@@ -686,14 +953,17 @@ void main() {
             const d = Math.hypot(dx, dy) + 1e-5;
             const R = a.r + b.r;
             if (d > R * 2.4) continue;
+
+            // old fragments collide more softly and pull harder, so they
+            // can find each other and melt back together
+            const melting =
+              (a.frag || b.frag) && a.age > C.mergeAge && b.age > C.mergeAge;
+            const rest = R * (melting ? 0.5 : 0.85);
+            const coh = C.cohesion * (melting ? C.mergeBoost : 1);
             let f;
-            const rest = R * 0.85;
             if (d > rest) {
-              // attraction, fading out with distance → gooey necks
-              f =
-                LAVA_CFG.cohesion *
-                (d - rest) *
-                (1 - (d - rest) / (R * 2.4 - rest));
+              // attraction fading out with distance → gooey necks
+              f = coh * (d - rest) * (1 - (d - rest) / (R * 2.4 - rest));
             } else {
               f = -2.2 * (rest - d); // don't collapse into one point
             }
@@ -703,6 +973,7 @@ void main() {
             a.ay += fy;
             b.ax -= fx;
             b.ay -= fy;
+
             // touching blobs share heat
             if (d < R) {
               const ex = (b.heat - a.heat) * 0.25 * h;
@@ -712,23 +983,55 @@ void main() {
           }
         }
 
-        const drag = Math.exp(-LAVA_CFG.viscosity * h);
+        const drag = Math.exp(-C.viscosity * h);
         for (const b of B) {
           b.heat = Math.min(1, Math.max(0, b.heat));
           b.vx = (b.vx + b.ax * h) * drag;
           b.vy = (b.vy + b.ay * h) * drag;
+
+          // cursor: constant-speed retreat (or pull) + jelly shake
+          if (mouseOn > 0 && C.mouse > 0) {
+            const dx = (b.x - mx) * sign;
+            const dy = (b.y - my) * sign;
+            const dist = Math.hypot(dx, dy) + 1e-5;
+            const edge = dist - b.r; // gap between cursor and the blob's edge
+            if (edge < rangeU) {
+              // 0 at the edge of the zone → 1 when the cursor touches the blob
+              const w =
+                Math.min(1, Math.max(0, 1 - edge / rangeU)) * mouseOn * C.mouse;
+              const dirx = dx / dist;
+              const diry = dy / dist;
+              const along = b.vx * dirx + b.vy * diry;
+              const dv =
+                (C.mouseSpeed - along) * Math.min(1, h * C.mouseGrip) * w;
+              b.vx += dirx * dv;
+              b.vy += diry * dv;
+              if (!b.near) {
+                b.near = true;
+                b.sv += (rnd() < 0.5 ? -1 : 1) * 1.2 * mouseOn; // first poke
+              }
+              b.sv += Math.sin(T * 11 + b.seed) * C.jiggle * w * h;
+            } else {
+              b.near = false;
+            }
+          } else {
+            b.near = false;
+          }
+
           b.x += b.vx * h;
           b.y += b.vy * h;
 
-          // glass walls: keep the WHOLE blob on screen (no cut-off edges)
-          const rx = (b.r * 1.05) / b.s; // thinner while stretched
-          const ry = b.r * 1.05 * b.s; // taller while stretched
+          // glass walls keep the whole blob on screen
+          const rx = (b.r * 1.05) / b.s;
+          const ry = b.r * 1.05 * b.s;
           if (b.x < rx) {
             b.x = rx;
+            b.sv += Math.abs(b.vx) * 3;
             b.vx = Math.abs(b.vx) * 0.3;
           }
           if (b.x > asp - rx) {
             b.x = asp - rx;
+            b.sv -= Math.abs(b.vx) * 3;
             b.vx = -Math.abs(b.vx) * 0.3;
           }
           if (b.y < ry * 0.5) {
@@ -737,18 +1040,29 @@ void main() {
           }
           if (b.y > 1 - ry) {
             b.y = 1 - ry;
+            b.sv += Math.abs(b.vy) * 3;
             b.vy = -Math.abs(b.vy) * 0.2;
           }
 
-          // stretch tall while moving vertically (gentle, capped)
-          const want = 1 + Math.min(0.25, Math.abs(b.vy) * 2.5);
-          b.s += (want - b.s) * Math.min(1, h * 2);
+          // jelly stretch: spring-damper. zone = 1 in the bottom stretch
+          // area, fading to 0 at sphereY, so blobs are round above it.
+          const zone = 1 - lavaSmooth(C.stretchFrom, C.sphereY, b.y);
+          const target = 1 + zone * Math.min(C.maxStretch, Math.abs(b.vy) * 3);
+          const damp =
+            C.springDampRound + (C.springDamp - C.springDampRound) * zone;
+          b.sv += (-C.springK * (b.s - target) - damp * b.sv) * h;
+          b.s += b.sv * h;
+          const hi = 1 + 0.12 + zone * (C.maxStretch + 0.15);
+          b.s = Math.min(hi, Math.max(0.8, b.s));
         }
       }
 
+      lavaMergePass(this);
+
       const BB = this.bufB;
       const SS = this.bufS;
-      for (let i = 0; i < n; i++) {
+      const m = Math.min(B.length, LAVA_MAX);
+      for (let i = 0; i < m; i++) {
         const b = B[i];
         BB[i * 4] = b.x;
         BB[i * 4 + 1] = b.y;
@@ -759,7 +1073,7 @@ void main() {
       return {
         uB: BB,
         uS: SS,
-        uN: { int: n },
+        uN: { int: m },
         uAsp: asp,
         uCool: this.cool,
         uHot: this.hot,
@@ -767,15 +1081,14 @@ void main() {
     },
   });
 
-  /* ══ 08. SCENE: INK (fluid simulation) ═════════════════════
-     A real (simplified) fluid: every mouse movement instantly pushes
-     velocity + ink into the fluid, which swirls and diffuses.
-     Click the background → burst of ink in a RANDOM color from
-     INK_COLORS. The color is remembered.
-     Anti-glare: new ink REPLACES the old color under the cursor
-     instead of piling on top, so hovering / circling for a long time
-     never builds up into bright white. Brightness is also capped.
-     Ink drops in by itself now and then so it's never empty. */
+  /* ══ 07. SCENE: INK (fluid simulation) ═════════════════════
+     A simplified real fluid: every mouse movement pushes velocity and
+     ink into the fluid, which swirls and diffuses.
+     Click the background → burst of ink in a random color from
+     INK_COLORS (remembered between visits).
+     Anti-glare: new ink replaces the old color under the cursor instead
+     of piling on top, and brightness is capped, so long hovering never
+     builds up into white. Ink also drops in by itself now and then. */
   const INK_SHADERS = {
     splat: `
 uniform sampler2D uTarget;
@@ -899,11 +1212,11 @@ void main() {
 }`,
   };
 
-  // Speed: the slider's 1× now equals the old 0.2× (calm, slow ink).
-  const INK_SPEED = 0.1;
+  const INK_SPEED = 0.1; // simulation speed (the slider's 1× = calm, slow ink)
+  const INK_LEVEL = 0.75; // ink color strength (lower = darker, softer)
 
-  // Click the background → a random color from this list.
-  // Before the first click the ink uses your theme colors.
+  // Before the first click the ink uses the theme colors; every click
+  // picks a random color from this list.
   const INK_COLORS = [
     { name: "Fluorescent Turquoise", hex: "#00fdff" },
     { name: "Neon Mint", hex: "#00ff73" },
@@ -957,15 +1270,12 @@ void main() {
     { name: "Electric Yellow", hex: "#fffc00" },
   ];
 
-  const INK_LEVEL = 0.75; // how strong the ink color is (lower = darker, softer)
-
   const InkScene = {
     type: "gl",
     resolution: (eco) => (eco ? 0.6 : 1),
     maxDpr: 1.5,
     setup(e) {
       const gl = e.gl;
-      // needs render-to-half-float; test once so we can fall back cleanly
       if (!supportsFloatTargets(gl)) return false;
 
       this.p = {};
@@ -1003,7 +1313,7 @@ void main() {
       const bg = Color.mixRgb(e.palette[0], { r: 4, g: 5, b: 9 }, 0.93);
       this.bg = [bg.r / 255, bg.g / 255, bg.b / 255];
 
-      // simulation grid is small (fast); ink texture is large (smooth)
+      // small simulation grid (fast), large ink texture (smooth)
       const asp = e.w / e.h;
       const dims = (res) =>
         asp > 1 ? [Math.round(res * asp), res] : [res, Math.round(res / asp)];
@@ -1031,8 +1341,8 @@ void main() {
       deleteFBO(gl, this.curl);
       this.vel = this.pressure = this.dye = this.div = this.curl = null;
     },
+    // glides through the 3 palette colors
     nextColor(scale) {
-      // glide through the 3 palette colors
       this.colorPos = (this.colorPos + 0.012) % 3;
       const i = Math.floor(this.colorPos);
       const f = this.colorPos - i;
@@ -1044,7 +1354,7 @@ void main() {
         (a[2] + (b[2] - a[2]) * f) * scale,
       ];
     },
-    // amount = how much the dye moves toward `color` at the center (0..1)
+    // amount = how far the dye moves toward `color` at the center (0..1)
     splat(e, x, y, vx, vy, color, radiusMul = 1, amount = 1) {
       const gl = e.gl;
       const asp = e.w / e.h;
@@ -1093,7 +1403,7 @@ void main() {
       if (this.queue.length > 48) this.queue.shift();
       this.queue.push(x, 1 - y, dx, -dy);
     },
-    // click → random new color (never the same twice in a row) + ink burst
+    // click → new random color (never the same twice in a row) + ink burst
     onClick(e, x, y) {
       let next;
       do {
@@ -1103,7 +1413,6 @@ void main() {
       localStorage.setItem("gx_ink_color", String(next));
       this.applyColor(e);
       if (this.clicks.length < 20) this.clicks.push(x, 1 - y);
-      return;
     },
     frame(e, dt, t) {
       const gl = e.gl;
@@ -1111,7 +1420,7 @@ void main() {
       gl.disable(gl.BLEND);
       const step = Math.min(dt * INK_SPEED, 1 / 30);
 
-      // click bursts: ring of ink shooting outward in the new colors
+      // click bursts: a ring of ink shooting outward in the new colors
       const cl = this.clicks;
       for (let i = 0; i < cl.length; i += 2) {
         const spokes = 7;
@@ -1149,13 +1458,13 @@ void main() {
         this.randomSplat(e);
       }
 
-      // every queued mouse movement becomes a push of fluid + ink
+      // every queued mouse movement pushes fluid + ink; fast moves paint
+      // more, slow hovering only tints a little (no glare build-up)
       const q = this.queue;
       for (let i = 0; i < q.length; i += 4) {
         const speed = Math.hypot(q[i + 2], q[i + 3]);
         if (speed < 1e-5) continue;
         const strength = Math.min(1, speed * 60);
-        // fast moves paint more; slow hovering only tints a little (no glare build-up)
         this.splat(
           e,
           q[i],
@@ -1262,12 +1571,12 @@ void main() {
     },
   };
 
-  /* ══ 09. SCENE: STAR FIELD ═════════════════════════════════
-     Slow drift; the cursor steers the view. (unchanged) */
+  /* ══ 08. SCENE: STAR FIELD ═════════════════════════════════
+     Slow drift through space; the cursor steers the view. */
   const StarScene = {
     type: "2d",
     maxDpr: 1,
-    resolution: () => 1, // stars need crisp pixels (device pixel ratio is capped at 1)
+    resolution: () => 1, // stars need crisp pixels (DPR is capped at 1)
     setup() {
       this.count = 0;
       this.nebula = null;
@@ -1289,7 +1598,7 @@ void main() {
         rgba(Color.mixRgb(c, { r: 255, g: 255, b: 255 }, 0.55), 1),
       );
 
-      // Soft nebula glow, drawn tiny then stretched (cheap + smooth)
+      // soft nebula glow, drawn tiny then stretched (cheap + smooth)
       freeCanvas(this.nebula);
       this.nebula = makeCanvas(96, 54);
       const n = this.nebula.getContext("2d");
@@ -1322,7 +1631,7 @@ void main() {
       const { ctx, w, h, pointer: p } = e;
       const par = 0.04 * p.strength;
 
-      // Background nebula with a little parallax
+      // background nebula with a little parallax
       ctx.globalAlpha = 1;
       ctx.drawImage(
         this.nebula,
@@ -1332,7 +1641,7 @@ void main() {
         h * (1 + par * 2),
       );
 
-      // Vanishing point follows the cursor → feels like steering
+      // the vanishing point follows the cursor → feels like steering
       const cx = w * 0.5 + (p.x - 0.5) * w * 0.3 * p.strength;
       const cy = h * 0.5 + (p.y - 0.5) * h * 0.3 * p.strength;
       const spread = Math.max(w, h) * 0.5;
@@ -1362,7 +1671,7 @@ void main() {
         ctx.fillRect(px, py, size, size);
       }
 
-      // Occasional shooting star
+      // occasional shooting star
       const s = this.shoot;
       if (s.life > 0) {
         s.life -= dt * 1.4;
@@ -1401,9 +1710,9 @@ void main() {
     },
   };
 
-  /* ══ 10. SCENE: FIREFLIES ══════════════════════════════════
-     Glowing fireflies wander and blink. Near the cursor they
-     swarm and orbit around it. Drawn at full resolution. */
+  /* ══ 09. SCENE: FIREFLIES ══════════════════════════════════
+     Glowing fireflies wander and blink. Near the cursor they swarm
+     and orbit around it. */
   const FireflyScene = {
     type: "2d",
     maxDpr: 1.5,
@@ -1437,7 +1746,7 @@ void main() {
         }
       }
 
-      // background: dusky night meadow (built once)
+      // dusky night meadow background (built once)
       freeCanvas(this.bg);
       this.bg = makeCanvas(w, h);
       const b = this.bg.getContext("2d");
@@ -1499,14 +1808,14 @@ void main() {
         let ax = Math.cos(ang) * 0.05;
         let ay = Math.sin(ang) * 0.05;
 
-        // swarm: pull toward the cursor + orbit around it
+        // swarm: settle on a ring around the cursor and orbit it
         const dx = (p.rx - this.fx[i]) * asp;
         const dy = p.ry - this.fy[i];
         const d2 = dx * dx + dy * dy;
         const near = active * Math.exp(-d2 / 0.09);
         if (near > 0.001) {
           const d = Math.sqrt(d2) + 1e-4;
-          const ring = (d - 0.07) * 1.6; // settle on a ring around the cursor
+          const ring = (d - 0.07) * 1.6;
           ax += ((dx / d) * ring - (dy / d) * 0.35) * near;
           ay += ((dy / d) * ring + (dx / d) * 0.35) * near;
         }
@@ -1550,9 +1859,9 @@ void main() {
     },
   };
 
-  /* ══ 10b. SCENE: NEBULA ════════════════════════════════════
-     Deep-space gas clouds with dark dust lanes and pixel-sharp
-     stars. The view drifts slightly with the cursor (parallax). */
+  /* ══ 10. SCENE: NEBULA ═════════════════════════════════════
+     Deep-space gas clouds with dark dust lanes and pixel-sharp stars.
+     The view drifts slightly with the cursor (parallax). */
   const NebulaScene = shaderScene({
     resolution: (eco) => (eco ? 0.6 : 1),
     maxDpr: 1.5,
@@ -1580,11 +1889,11 @@ void main() {
   float dust = fbm(p * 3.2 - r * 1.6 + 3.0);
   col *= 1.0 - 0.7 * smoothstep(0.5, 0.72, dust);
 
-  // gentle glow under the cursor
+  // glow under the cursor
   vec2 dm = p - m;
   col += mix(uC1, vec3(1.0), 0.4) * 0.05 * exp(-dot(dm, dm) * 10.0) * uStrength;
 
-  // pixel-sharp stars (size in real pixels → crisp at any resolution)
+  // pixel-sharp stars (sized in real pixels → crisp at any resolution)
   vec2 g = gl_FragCoord.xy / 3.0;
   vec2 cell = floor(g);
   float h = hash(cell);
@@ -1601,11 +1910,11 @@ void main() {
 }`,
   });
 
-  /* ══ 10c. SCENE: RIPPLES (water) ═══════════════════════════
-     Real wave simulation: your cursor drags through the water and
-     leaves ripples that spread, bounce and fade. Raindrops fall
-     on their own. Light bends through the surface (refraction),
-     with caustics on the pool floor and glints on the waves. */
+  /* ══ 11. SCENE: RIPPLES (water) ════════════════════════════
+     Real wave simulation: the cursor drags through the water and leaves
+     ripples that spread, bounce and fade; clicks make a splash and
+     raindrops fall on their own. Light bends through the surface
+     (refraction), with caustics on the pool floor and glints on waves. */
   const RIPPLE_SHADERS = {
     drop: `
 uniform sampler2D uState;
@@ -1677,20 +1986,6 @@ void main() {
 }`,
   };
 
-  // Shared check: can this browser render to half-float textures?
-  function supportsFloatTargets(gl) {
-    if (
-      !gl.getExtension("EXT_color_buffer_float") &&
-      !gl.getExtension("EXT_color_buffer_half_float")
-    )
-      return false;
-    const test = createFBO(gl, 4, 4);
-    const ok =
-      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-    deleteFBO(gl, test);
-    return ok;
-  }
-
   const RippleScene = {
     type: "gl",
     resolution: (eco) => (eco ? 0.6 : 1),
@@ -1733,7 +2028,6 @@ void main() {
     // click → big splash (center drop + ring of droplets)
     onClick(e, x, y) {
       if (this.clicks.length < 30) this.clicks.push(x, 1 - y);
-      // no return value → no floating label for this scene
     },
     onPointer(e, x, y, dx, dy) {
       if (this.queue.length > 60) this.queue.splice(0, 3);
@@ -1743,7 +2037,7 @@ void main() {
       const gl = e.gl;
       gl.disable(gl.BLEND);
 
-      // cursor trail → ripples (instant, no smoothing)
+      // cursor trail → ripples
       const q = this.queue;
       for (let i = 0; i < q.length; i += 3) {
         const v = Math.min(1, q[i + 2] * 40);
@@ -1755,8 +2049,8 @@ void main() {
       const cl = this.clicks;
       const asp = e.w / e.h;
       for (let i = 0; i < cl.length; i += 2) {
-        const cx = cl[i],
-          cy = cl[i + 1];
+        const cx = cl[i];
+        const cy = cl[i + 1];
         this.drop(e, cx, cy, 0.028, 1.4); // main impact
         const n = 6;
         const turn = Math.random() * Math.PI * 2;
@@ -1824,10 +2118,9 @@ void main() {
     },
   };
 
-  /* ══ 10d. SCENE: CONSTELLATION ═════════════════════════════
-     Floating stars linked by thin lines when they get close.
-     Your cursor joins the network: nearby stars connect to it
-     and gently gather around it. Full resolution, crisp lines. */
+  /* ══ 12. SCENE: CONSTELLATION ══════════════════════════════
+     Floating stars linked by thin lines when they get close. The cursor
+     joins the network: nearby stars connect to it and gather around it. */
   const ConstellationScene = {
     type: "2d",
     maxDpr: 1.5,
@@ -1888,25 +2181,24 @@ void main() {
     frame(e, dt) {
       const { ctx, w, h, pointer: p } = e;
       const n = this.count;
-      const X = this.x,
-        Y = this.y;
+      const X = this.x;
+      const Y = this.y;
       const asp = w / h;
       const link = 0.16; // link distance (fraction of height)
       const mouseOn = p.inside && p.strength > 0.05;
-      const mx = p.rx,
-        my = p.ry;
+      const mx = p.rx;
+      const my = p.ry;
 
       ctx.globalAlpha = 1;
       ctx.drawImage(this.bg, 0, 0);
 
-      // move
       for (let i = 0; i < n; i++) {
         if (mouseOn) {
           const dx = (mx - X[i]) * asp;
           const dy = my - Y[i];
           const d2 = dx * dx + dy * dy;
           if (d2 < 0.06) {
-            // gather around the cursor, but keep a little distance
+            // gather around the cursor, keeping a little distance
             const d = Math.sqrt(d2) + 1e-4;
             const f = (d - 0.08) * 0.25 * p.strength * dt;
             X[i] += ((dx / d) * f) / asp;
@@ -1921,7 +2213,7 @@ void main() {
         else if (Y[i] > 1.02) Y[i] -= 1.04;
       }
 
-      // links between close stars
+      // links between close stars, and from stars to the cursor
       ctx.lineWidth = Math.max(1, h / 900);
       for (let i = 0; i < n; i++) {
         const c = this.rgb[this.ci[i]];
@@ -1937,7 +2229,6 @@ void main() {
           ctx.lineTo(X[j] * w, Y[j] * h);
           ctx.stroke();
         }
-        // link to the cursor
         if (mouseOn) {
           const dx = (X[i] - mx) * asp;
           const dy = Y[i] - my;
@@ -1955,7 +2246,6 @@ void main() {
         }
       }
 
-      // stars on top
       for (let i = 0; i < n; i++) {
         const r = this.sz[i] * (h / 720);
         ctx.fillStyle = rgba(this.rgb[this.ci[i]], 0.95);
@@ -1977,6 +2267,7 @@ void main() {
     },
   };
 
+  /* ══ 13. ENGINE ════════════════════════════════════════════ */
   const SCENES = {
     aurora: AuroraScene,
     ink: InkScene,
@@ -1988,7 +2279,6 @@ void main() {
     constellation: ConstellationScene,
   };
 
-  /* ══ 11. ENGINE ════════════════════════════════════════════ */
   const engine = {
     canvas: null,
     ctx: null, // 2D context (2D scenes)
@@ -2035,6 +2325,10 @@ void main() {
 
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
 
+  // clicks on these never count as background clicks
+  const UI_SELECTOR =
+    "a, button, input, textarea, select, label, dialog, [role='button'], .glass-card, .glass-sidebar, #settings-sidebar, #menu-btn, #modal-backdrop, .search-form, .bookmark-item, .task-item";
+
   function computePalette() {
     const base = engine.basePalette.map((hex) =>
       Color.isHex(hex) ? hex : "#3b82f6",
@@ -2045,13 +2339,13 @@ void main() {
     engine.palette = mixed.map((hex) => Color.hexToRgb(hex));
   }
 
-  // A canvas can only ever have one context type, and GPU memory is only
-  // released when its context is lost → give every scene a fresh canvas.
+  // A canvas keeps its first context type forever, and GPU memory is only
+  // released when the context is lost → every scene gets a fresh canvas.
   function releaseContext() {
     if (engine.gl) {
       try {
         engine.gl.getExtension("WEBGL_lose_context")?.loseContext();
-      } catch {}
+      } catch { }
     }
     engine.gl = engine.ctx = engine.vao = null;
     if (engine.ctxType && engine.canvas) {
@@ -2099,7 +2393,7 @@ void main() {
       });
       canvas.addEventListener("webglcontextrestored", (ev) => {
         if (ev.target !== engine.canvas || !engine.sceneId) return;
-        engine.ctxType = null; // context is new; don't swap canvas again
+        engine.ctxType = null; // the context is new; don't swap the canvas again
         mountScene(engine.sceneId);
         start();
       });
@@ -2128,8 +2422,8 @@ void main() {
     const dpr = Math.min(window.devicePixelRatio || 1, scene.maxDpr ?? 1);
     const s = scene.resolution(engine.eco) * dpr;
 
-    // real on-screen size (correct on tablets/phones, where 100vh and
-    // innerHeight differ because of the browser's address bar)
+    // real on-screen size (100vh and innerHeight differ on tablets/phones
+    // because of the browser's address bar)
     const rect = canvas.getBoundingClientRect();
     const w = Math.max(1, Math.round((rect.width || window.innerWidth) * s));
     const h = Math.max(1, Math.round((rect.height || window.innerHeight) * s));
@@ -2152,7 +2446,7 @@ void main() {
     const dt = (Math.min(elapsed, 100) / 1000) * engine.cfg.speed * motion;
     engine.t += dt;
 
-    // smoothed cursor for gentle scenes (fast enough to feel direct)
+    // smoothed cursor for gentle scenes
     const p = engine.pointer;
     const k = Math.min(1, (elapsed / 1000) * 7);
     const px = p.x;
@@ -2184,6 +2478,7 @@ void main() {
     if (engine.listeners) return;
     engine.listeners = new AbortController();
     const opts = { passive: true, signal: engine.listeners.signal };
+
     window.addEventListener(
       "pointermove",
       (ev) => {
@@ -2196,12 +2491,13 @@ void main() {
         p.rx = p.tx = nx;
         p.ry = p.ty = ny;
         p.inside = true;
-        // instant hook (Ink): no smoothing, no waiting
+        // instant hook (Ink, Ripples): no smoothing, no waiting
         if (engine.raf) engine.scene?.onPointer?.(engine, nx, ny, dx, dy);
       },
       opts,
     );
-    // click on the background (not on UI) → scene.onClick (Ink colors)
+
+    // click on the background (not on UI) → scene.onClick (Ink, Ripples, Lava)
     window.addEventListener(
       "pointerdown",
       (ev) => {
@@ -2211,9 +2507,11 @@ void main() {
         const nx = ev.clientX / window.innerWidth;
         const ny = ev.clientY / window.innerHeight;
         const label = engine.scene.onClick(engine, nx, ny);
+        if (label) showSceneToast(label, ev.clientX, ev.clientY);
       },
       opts,
     );
+
     document.documentElement.addEventListener(
       "pointerleave",
       () => {
@@ -2223,6 +2521,7 @@ void main() {
       },
       opts,
     );
+
     window.addEventListener(
       "resize",
       () => {
@@ -2244,7 +2543,8 @@ void main() {
       () => (document.hidden ? stop() : start()),
       opts,
     );
-    // Day cycle: recolor once a minute (not per frame)
+
+    // day cycle: recolor once a minute (not per frame)
     engine.dayTimer = setInterval(() => {
       if (!engine.cfg.dayCycle || !engine.scene) return;
       computePalette();
@@ -2252,11 +2552,7 @@ void main() {
     }, 60000);
   }
 
-  // clicks on these never count as "background" clicks
-  const UI_SELECTOR =
-    "a, button, input, textarea, select, label, dialog, [role='button'], .glass-card, .glass-sidebar, #settings-sidebar, #menu-btn, #modal-backdrop, .search-form, .bookmark-item, .task-item";
-
-  // tiny floating label (e.g. "Warm") where you clicked
+  // tiny floating label where you clicked (shown when onClick returns text)
   let toastEl = null;
   let toastTimer = 0;
   function showSceneToast(text, x, y) {
@@ -2269,7 +2565,7 @@ void main() {
     toastEl.style.left = `${x}px`;
     toastEl.style.top = `${y}px`;
     toastEl.classList.remove("show");
-    void toastEl.offsetWidth; // restart animation
+    void toastEl.offsetWidth; // restart the animation
     toastEl.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toastEl?.classList.remove("show"), 1100);
@@ -2327,7 +2623,7 @@ void main() {
     c.style.mixBlendMode = engine.cfg.blend ? "screen" : "normal";
   }
 
-  /* ══ 12. PUBLIC API ════════════════════════════════════════ */
+  /* ══ 14. PUBLIC API ════════════════════════════════════════ */
   window.LiveScene = {
     SCENES: Object.keys(SCENES),
 
