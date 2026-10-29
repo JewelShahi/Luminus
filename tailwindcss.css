@@ -1,3 +1,41 @@
+/* ═══════════════════════════════════════════════════════════
+   LUMINUS — tailwindcss.css  (Tailwind CSS v3.4 + daisyUI 4.12)
+
+   This is a GENERATED file. `npm run build:css` rewrites it from
+   scratch (and drops these comments). That's fine — the build
+   produces the same classes. Organized by hand for easy reading.
+
+   Order matters in CSS: later rules win. The sections below keep
+   Tailwind's order (base → utilities → hover/focus → screen sizes).
+
+   CONTENTS
+   01. Tailwind variables (needed by transforms, shadows, filters…)
+   02. Preflight (browser reset)
+   03. Position & visibility
+   04. Z-index (layers)
+   05. Margin
+   06. Display
+   07. Height
+   08. Width
+   09. Max / min sizes
+   10. Flexbox & grid
+   11. Gap & spacing between children
+   12. Transforms (translate / scale)
+   13. Overflow
+   14. Borders & radius
+   15. Backgrounds
+   16. Padding
+   17. Typography
+   18. Text colors & placeholders
+   19. Opacity
+   20. Shadows, outline & blur
+   21. Transitions
+   22. Misc (cursor, select, appearance, accent)
+   23. State variants (placeholder / hover / focus / active / group)
+   24. Responsive (md: 768px+, lg: 1024px+)
+═════════════════════════════════════════════════════════════ */
+
+/* ══ 01. TAILWIND VARIABLES ═══════════════════════════════════ */
 *,
 ::before,
 ::after {
@@ -108,17 +146,15 @@
   --tw-contain-style:  ;
 }
 
+/* ══ 02. PREFLIGHT (browser reset) ════════════════════════════ */
+/* box model: everything uses border-box, borders off by default */
 *,
 ::before,
 ::after {
   box-sizing: border-box;
-  /* 1 */
   border-width: 0;
-  /* 2 */
   border-style: solid;
-  /* 2 */
   border-color: #e5e7eb;
-  /* 2 */
 }
 
 ::before,
@@ -126,79 +162,41 @@
   --tw-content: "";
 }
 
-/*
-1. Use a consistent sensible line-height in all browsers.
-2. Prevent adjustments of font size after orientation changes in iOS.
-3. Use a more readable tab size.
-4. Use the user's configured `sans` font-family by default.
-5. Use the user's configured `sans` font-feature-settings by default.
-6. Use the user's configured `sans` font-variation-settings by default.
-7. Disable tap highlights on iOS
-*/
-
+/* page defaults: line height, iOS text size, tab size, font, no tap flash */
 html,
 :host {
   line-height: 1.5;
-  /* 1 */
   -webkit-text-size-adjust: 100%;
-  /* 2 */
   -moz-tab-size: 4;
-  /* 3 */
   -o-tab-size: 4;
   tab-size: 4;
-  /* 3 */
   font-family:
     ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
-  /* 4 */
   font-feature-settings: normal;
-  /* 5 */
   font-variation-settings: normal;
-  /* 6 */
   -webkit-tap-highlight-color: transparent;
-  /* 7 */
 }
-
-/*
-1. Remove the margin in all browsers.
-2. Inherit line-height from `html` so users can set them as a class directly on the `html` element.
-*/
 
 body {
   margin: 0;
-  /* 1 */
   line-height: inherit;
-  /* 2 */
 }
 
-/*
-1. Add the correct height in Firefox.
-2. Correct the inheritance of border color in Firefox. (https://bugzilla.mozilla.org/show_bug.cgi?id=190655)
-3. Ensure horizontal rules are visible by default.
-*/
-
+/* horizontal rule: visible, inherits color (Firefox fix) */
 hr {
   height: 0;
-  /* 1 */
   color: inherit;
-  /* 2 */
   border-top-width: 1px;
-  /* 3 */
 }
 
-/*
-Add the correct text decoration in Chrome, Edge, and Safari.
-*/
-
+/* dotted underline for abbreviations (Chrome, Edge, Safari) */
 abbr:where([title]) {
   -webkit-text-decoration: underline dotted;
   text-decoration: underline dotted;
 }
 
-/*
-Remove the default font size and weight for headings.
-*/
-
+/* headings and links have no default styling */
 h1,
 h2,
 h3,
@@ -209,31 +207,17 @@ h6 {
   font-weight: inherit;
 }
 
-/*
-Reset links to optimize for opt-in styling instead of opt-out.
-*/
-
 a {
   color: inherit;
   text-decoration: inherit;
 }
-
-/*
-Add the correct font weight in Edge and Safari.
-*/
 
 b,
 strong {
   font-weight: bolder;
 }
 
-/*
-1. Use the user's configured `mono` font-family by default.
-2. Use the user's configured `mono` font-feature-settings by default.
-3. Use the user's configured `mono` font-variation-settings by default.
-4. Correct the odd `em` font sizing in all browsers.
-*/
-
+/* monospace elements */
 code,
 kbd,
 samp,
@@ -241,27 +225,16 @@ pre {
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  /* 1 */
   font-feature-settings: normal;
-  /* 2 */
   font-variation-settings: normal;
-  /* 3 */
   font-size: 1em;
-  /* 4 */
 }
-
-/*
-Add the correct font size in all browsers.
-*/
 
 small {
   font-size: 80%;
 }
 
-/*
-Prevent `sub` and `sup` elements from affecting the line height in all browsers.
-*/
-
+/* sub / sup don't change the line height */
 sub,
 sup {
   font-size: 75%;
@@ -278,157 +251,84 @@ sup {
   top: -0.5em;
 }
 
-/*
-1. Remove text indentation from table contents in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=999088, https://bugs.webkit.org/show_bug.cgi?id=201297)
-2. Correct table border color inheritance in all Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=935729, https://bugs.webkit.org/show_bug.cgi?id=195016)
-3. Remove gaps between table borders by default.
-*/
-
+/* tables */
 table {
   text-indent: 0;
-  /* 1 */
   border-color: inherit;
-  /* 2 */
   border-collapse: collapse;
-  /* 3 */
 }
 
-/*
-1. Change the font styles in all browsers.
-2. Remove the margin in Firefox and Safari.
-3. Remove default padding in all browsers.
-*/
-
+/* form controls inherit fonts and lose default margin / padding */
 button,
 input,
 optgroup,
 select,
 textarea {
   font-family: inherit;
-  /* 1 */
   font-feature-settings: inherit;
-  /* 1 */
   font-variation-settings: inherit;
-  /* 1 */
   font-size: 100%;
-  /* 1 */
   font-weight: inherit;
-  /* 1 */
   line-height: inherit;
-  /* 1 */
   letter-spacing: inherit;
-  /* 1 */
   color: inherit;
-  /* 1 */
   margin: 0;
-  /* 2 */
   padding: 0;
-  /* 3 */
 }
-
-/*
-Remove the inheritance of text transform in Edge and Firefox.
-*/
 
 button,
 select {
   text-transform: none;
 }
 
-/*
-1. Correct the inability to style clickable types in iOS and Safari.
-2. Remove default button styles.
-*/
-
+/* buttons: no default look (iOS / Safari fix) */
 button,
 input:where([type="button"]),
 input:where([type="reset"]),
 input:where([type="submit"]) {
   -webkit-appearance: button;
-  /* 1 */
   background-color: transparent;
-  /* 2 */
   background-image: none;
-  /* 2 */
 }
 
-/*
-Use the modern Firefox focus style for all focusable elements.
-*/
-
+/* Firefox focus + invalid fixes */
 :-moz-focusring {
   outline: auto;
 }
-
-/*
-Remove the additional `:invalid` styles in Firefox. (https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737)
-*/
 
 :-moz-ui-invalid {
   box-shadow: none;
 }
 
-/*
-Add the correct vertical alignment in Chrome and Firefox.
-*/
-
 progress {
   vertical-align: baseline;
 }
-
-/*
-Correct the cursor style of increment and decrement buttons in Safari.
-*/
 
 ::-webkit-inner-spin-button,
 ::-webkit-outer-spin-button {
   height: auto;
 }
 
-/*
-1. Correct the odd appearance in Chrome and Safari.
-2. Correct the outline style in Safari.
-*/
-
+/* search inputs (Chrome / Safari fixes) */
 [type="search"] {
   -webkit-appearance: textfield;
-  /* 1 */
   outline-offset: -2px;
-  /* 2 */
 }
-
-/*
-Remove the inner padding in Chrome and Safari on macOS.
-*/
 
 ::-webkit-search-decoration {
   -webkit-appearance: none;
 }
 
-/*
-1. Correct the inability to style clickable types in iOS and Safari.
-2. Change font properties to `inherit` in Safari.
-*/
-
 ::-webkit-file-upload-button {
   -webkit-appearance: button;
-  /* 1 */
   font: inherit;
-  /* 2 */
 }
-
-/*
-Add the correct display in Chrome and Safari.
-*/
 
 summary {
   display: list-item;
 }
 
-/*
-Removes the default spacing and border for appropriate elements.
-*/
-
+/* remove default spacing */
 blockquote,
 dl,
 dd,
@@ -462,66 +362,38 @@ menu {
   padding: 0;
 }
 
-/*
-Reset default styling for dialogs.
-*/
-
 dialog {
   padding: 0;
 }
-
-/*
-Prevent resizing textareas horizontally by default.
-*/
 
 textarea {
   resize: vertical;
 }
 
-/*
-1. Reset the default placeholder opacity in Firefox. (https://github.com/tailwindlabs/tailwindcss/issues/3300)
-2. Set the default placeholder color to the user's configured gray 400 color.
-*/
-
+/* placeholders: full opacity, gray-400 */
 input::-moz-placeholder,
 textarea::-moz-placeholder {
   opacity: 1;
-  /* 1 */
   color: #9ca3af;
-  /* 2 */
 }
 
 input::placeholder,
 textarea::placeholder {
   opacity: 1;
-  /* 1 */
   color: #9ca3af;
-  /* 2 */
 }
 
-/*
-Set the default cursor for buttons.
-*/
-
+/* cursors */
 button,
 [role="button"] {
   cursor: pointer;
 }
 
-/*
-Make sure disabled buttons don't get the pointer cursor.
-*/
-
 :disabled {
   cursor: default;
 }
 
-/*
-1. Make replaced elements `display: block` by default. (https://github.com/mozdevs/cssremedy/issues/14)
-2. Add `vertical-align: middle` to align replaced elements more sensibly by default. (https://github.com/jensimmons/cssremedy/issues/14#issuecomment-634934210)
-   This can trigger a poorly considered lint error in some tools but is included by design.
-*/
-
+/* media elements are blocks and never overflow their parent */
 img,
 svg,
 video,
@@ -531,14 +403,8 @@ iframe,
 embed,
 object {
   display: block;
-  /* 1 */
   vertical-align: middle;
-  /* 2 */
 }
-
-/*
-Constrain images and videos to the parent width and preserve their intrinsic aspect ratio. (https://github.com/mozdevs/cssremedy/issues/14)
-*/
 
 img,
 video {
@@ -546,12 +412,12 @@ video {
   height: auto;
 }
 
-/* Make elements with the HTML hidden attribute stay hidden by default */
-
+/* the HTML `hidden` attribute always hides */
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
 }
 
+/* ══ 03. POSITION & VISIBILITY ════════════════════════════════ */
 .pointer-events-none {
   pointer-events: none;
 }
@@ -608,6 +474,7 @@ video {
   top: 50%;
 }
 
+/* ══ 04. Z-INDEX (layers) ═════════════════════════════════════ */
 .z-0 {
   z-index: 0;
 }
@@ -648,6 +515,7 @@ video {
   z-index: 45;
 }
 
+/* ══ 05. MARGIN ═══════════════════════════════════════════════ */
 .mx-4 {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -658,8 +526,16 @@ video {
   margin-right: auto;
 }
 
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 0.75rem;
 }
 
 .mb-5 {
@@ -678,10 +554,19 @@ video {
   margin-top: 0.75rem;
 }
 
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mt-5 {
+  margin-top: 1.25rem;
+}
+
 .mt-6 {
   margin-top: 1.5rem;
 }
 
+/* ══ 06. DISPLAY ══════════════════════════════════════════════ */
 .block {
   display: block;
 }
@@ -698,6 +583,11 @@ video {
   display: none;
 }
 
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+/* ══ 07. HEIGHT ═══════════════════════════════════════════════ */
 .h-1 {
   height: 0.25rem;
 }
@@ -712,6 +602,10 @@ video {
 
 .h-9 {
   height: 2.25rem;
+}
+
+.h-\[34px\] {
+  height: 34px;
 }
 
 .h-\[3px\] {
@@ -738,6 +632,7 @@ video {
   min-height: 100vh;
 }
 
+/* ══ 08. WIDTH ════════════════════════════════════════════════ */
 .w-1\/2 {
   width: 50%;
 }
@@ -774,6 +669,10 @@ video {
   width: 340px;
 }
 
+.w-\[34px\] {
+  width: 34px;
+}
+
 .w-\[5px\] {
   width: 5px;
 }
@@ -782,8 +681,29 @@ video {
   width: 100%;
 }
 
+/* ══ 09. MAX / MIN SIZES ══════════════════════════════════════ */
+.min-w-0 {
+  min-width: 0px;
+}
+
+.min-w-\[5\.5rem\] {
+  min-width: 5.5rem;
+}
+
+.min-w-\[8\.5rem\] {
+  min-width: 8.5rem;
+}
+
+.max-w-2xl {
+  max-width: 42rem;
+}
+
 .max-w-4xl {
   max-width: 56rem;
+}
+
+.max-w-md {
+  max-width: 28rem;
 }
 
 .max-w-sm {
@@ -794,58 +714,33 @@ video {
   max-width: 36rem;
 }
 
+.max-w-\[110px\] {
+  max-width: 110px;
+}
+
+.max-w-\[160px\] {
+  max-width: 160px;
+}
+
+/* ══ 10. FLEXBOX & GRID ═══════════════════════════════════════ */
 .flex-1 {
   flex: 1 1 0%;
 }
 
-.-translate-y-1\/2 {
-  --tw-translate-y: -50%;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+.flex-shrink-0 {
+  flex-shrink: 0;
 }
 
-.translate-x-full {
-  --tw-translate-x: 100%;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.scale-110 {
-  --tw-scale-x: 1.1;
-  --tw-scale-y: 1.1;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.scale-95 {
-  --tw-scale-x: 0.95;
-  --tw-scale-y: 0.95;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.select-none {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-}
-
-.appearance-none {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+.shrink-0 {
+  flex-shrink: 0;
 }
 
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .flex-row {
@@ -876,6 +771,10 @@ video {
   align-items: stretch;
 }
 
+.justify-end {
+  justify-content: flex-end;
+}
+
 .justify-center {
   justify-content: center;
 }
@@ -888,6 +787,7 @@ video {
   justify-content: space-evenly;
 }
 
+/* ══ 11. GAP & SPACING BETWEEN CHILDREN ═══════════════════════ */
 .gap-1 {
   gap: 0.25rem;
 }
@@ -896,8 +796,8 @@ video {
   gap: 0.375rem;
 }
 
-.gap-10 {
-  gap: 2.5rem;
+.gap-2 {
+  gap: 0.5rem;
 }
 
 .gap-3 {
@@ -910,6 +810,10 @@ video {
 
 .gap-7 {
   gap: 1.75rem;
+}
+
+.gap-10 {
+  gap: 2.5rem;
 }
 
 .gap-\[5px\] {
@@ -946,6 +850,38 @@ video {
   margin-bottom: calc(1.25rem * var(--tw-space-y-reverse));
 }
 
+/* ══ 12. TRANSFORMS (translate / scale) ═══════════════════════ */
+.-translate-y-1\/2 {
+  --tw-translate-y: -50%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.translate-x-full {
+  --tw-translate-x: 100%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.scale-110 {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.scale-95 {
+  --tw-scale-x: 0.95;
+  --tw-scale-y: 0.95;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+/* ══ 13. OVERFLOW ═════════════════════════════════════════════ */
 .overflow-hidden {
   overflow: hidden;
 }
@@ -954,6 +890,13 @@ video {
   overflow-y: auto;
 }
 
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ══ 14. BORDERS & RADIUS ═════════════════════════════════════ */
 .rounded-2xl {
   border-radius: 1rem;
 }
@@ -964,6 +907,10 @@ video {
 
 .rounded-full {
   border-radius: 9999px;
+}
+
+.rounded-\[10px\] {
+  border-radius: 10px;
 }
 
 .border {
@@ -978,13 +925,22 @@ video {
   border-color: rgb(255 255 255 / 0.1);
 }
 
+.border-white\/20 {
+  border-color: rgb(255 255 255 / 0.2);
+}
+
 .border-white\/\[0\.06\] {
   border-color: rgb(255 255 255 / 0.06);
 }
 
+/* ══ 15. BACKGROUNDS ══════════════════════════════════════════ */
 .bg-\[\#07070a\] {
   --tw-bg-opacity: 1;
   background-color: rgb(7 7 10 / var(--tw-bg-opacity, 1));
+}
+
+.bg-black\/0 {
+  background-color: rgb(0 0 0 / 0);
 }
 
 .bg-black\/60 {
@@ -1006,6 +962,15 @@ video {
   background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
 }
 
+.bg-red-500\/10 {
+  background-color: rgb(239 68 68 / 0.1);
+}
+
+/* daisyUI primary color (follows your theme) */
+.bg-primary\/80 {
+  background-color: var(--fallback-p, oklch(var(--p) / 0.8));
+}
+
 .bg-white\/10 {
   background-color: rgb(255 255 255 / 0.1);
 }
@@ -1018,6 +983,10 @@ video {
   background-color: rgb(255 255 255 / 0.6);
 }
 
+.bg-white\/\[0\.02\] {
+  background-color: rgb(255 255 255 / 0.02);
+}
+
 .bg-cover {
   background-size: cover;
 }
@@ -1026,6 +995,12 @@ video {
   background-position: center;
 }
 
+.object-cover {
+  -o-object-fit: cover;
+  object-fit: cover;
+}
+
+/* ══ 16. PADDING ══════════════════════════════════════════════ */
 .p-2 {
   padding: 0.5rem;
 }
@@ -1112,6 +1087,8 @@ video {
   padding-top: 320px;
 }
 
+/* ══ 17. TYPOGRAPHY ═══════════════════════════════════════════ */
+/* alignment */
 .text-center {
   text-align: center;
 }
@@ -1120,6 +1097,18 @@ video {
   text-align: right;
 }
 
+.text-end {
+  text-align: end;
+}
+
+/* font family */
+.font-mono {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+/* font size */
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -1130,13 +1119,14 @@ video {
   line-height: 2.25rem;
 }
 
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
 .text-5xl {
   font-size: 3rem;
   line-height: 1;
-}
-
-.text-\[10px\] {
-  font-size: 10px;
 }
 
 .text-\[8px\] {
@@ -1145,6 +1135,18 @@ video {
 
 .text-\[9px\] {
   font-size: 9px;
+}
+
+.text-\[10px\] {
+  font-size: 10px;
+}
+
+.text-\[11px\] {
+  font-size: 11px;
+}
+
+.text-\[12px\] {
+  font-size: 12px;
 }
 
 .text-lg {
@@ -1167,16 +1169,21 @@ video {
   line-height: 1rem;
 }
 
+/* font weight & style */
 .font-black {
   font-weight: 900;
+}
+
+.font-extrabold {
+  font-weight: 800;
 }
 
 .font-bold {
   font-weight: 700;
 }
 
-.font-extrabold {
-  font-weight: 800;
+.font-semibold {
+  font-weight: 600;
 }
 
 .font-medium {
@@ -1191,18 +1198,20 @@ video {
   font-style: italic;
 }
 
+.line-through {
+  text-decoration-line: line-through;
+}
+
+/* line height */
 .leading-none {
   line-height: 1;
 }
 
-.tracking-\[0\.3em\] {
-  letter-spacing: 0.3em;
+.leading-snug {
+  line-height: 1.375;
 }
 
-.tracking-\[0\.45em\] {
-  letter-spacing: 0.45em;
-}
-
+/* letter spacing */
 .tracking-tight {
   letter-spacing: -0.025em;
 }
@@ -1215,6 +1224,32 @@ video {
   letter-spacing: 0.1em;
 }
 
+.tracking-\[0\.1em\] {
+  letter-spacing: 0.1em;
+}
+
+.tracking-\[0\.2em\] {
+  letter-spacing: 0.2em;
+}
+
+.tracking-\[0\.3em\] {
+  letter-spacing: 0.3em;
+}
+
+.tracking-\[0\.45em\] {
+  letter-spacing: 0.45em;
+}
+
+/* "!" = important (always wins) */
+.\!text-\[10px\] {
+  font-size: 10px !important;
+}
+
+.\!tracking-wider {
+  letter-spacing: 0.05em !important;
+}
+
+/* ══ 18. TEXT COLORS & PLACEHOLDERS ═══════════════════════════ */
 .text-red-400\/70 {
   color: rgb(248 113 113 / 0.7);
 }
@@ -1232,8 +1267,13 @@ video {
   --tw-placeholder-opacity: 0.4;
 }
 
+/* ══ 19. OPACITY ══════════════════════════════════════════════ */
 .opacity-0 {
   opacity: 0;
+}
+
+.opacity-\[0\.025\] {
+  opacity: 0.025;
 }
 
 .opacity-20 {
@@ -1252,8 +1292,28 @@ video {
   opacity: 0.5;
 }
 
-.opacity-\[0\.025\] {
-  opacity: 0.025;
+.opacity-65 {
+  opacity: 0.65;
+}
+
+.opacity-70 {
+  opacity: 0.7;
+}
+
+.opacity-75 {
+  opacity: 0.75;
+}
+
+/* ══ 20. SHADOWS, OUTLINE & BLUR ══════════════════════════════ */
+.shadow-xl {
+  --tw-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored:
+    0 20px 25px -5px var(--tw-shadow-color),
+    0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
 }
 
 .shadow-2xl {
@@ -1278,6 +1338,8 @@ video {
     var(--tw-backdrop-sepia);
 }
 
+/* ══ 21. TRANSITIONS ══════════════════════════════════════════ */
+/* what animates (these also set a 150ms default) */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1297,8 +1359,9 @@ video {
   transition-duration: 150ms;
 }
 
-.duration-1000 {
-  transition-duration: 1000ms;
+/* how long (must come after transition-*) */
+.duration-150 {
+  transition-duration: 150ms;
 }
 
 .duration-200 {
@@ -1317,16 +1380,61 @@ video {
   transition-duration: 700ms;
 }
 
+.duration-1000 {
+  transition-duration: 1000ms;
+}
+
+/* easing curve (must come after transition-*) */
+.ease-out {
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
 .ease-\[cubic-bezier\(0\.32\2c 0\.72\2c 0\2c 1\)\] {
   transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* ══ 22. MISC (cursor, select, appearance, accent) ════════════ */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.appearance-none {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* daisyUI primary color for sliders / checkboxes */
+.accent-primary {
+  accent-color: var(--fallback-p, oklch(var(--p) / 1));
+}
+
+/* ══ 23. STATE VARIANTS ═══════════════════════════════════════
+   Kept AFTER all base utilities so they always win.
+   Order: placeholder → hover → focus → active → group. */
+
+/* placeholder text */
 .placeholder\:text-white\/20::-moz-placeholder {
   color: rgb(255 255 255 / 0.2);
 }
 
 .placeholder\:text-white\/20::placeholder {
   color: rgb(255 255 255 / 0.2);
+}
+
+/* hover */
+.hover\:scale-\[1\.02\]:hover {
+  --tw-scale-x: 1.02;
+  --tw-scale-y: 1.02;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .hover\:scale-110:hover {
@@ -1345,6 +1453,15 @@ video {
     scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.hover\:bg-primary:hover {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-p, oklch(var(--p) / var(--tw-bg-opacity)));
+}
+
+.hover\:bg-red-500\/20:hover {
+  background-color: rgb(239 68 68 / 0.2);
+}
+
 .hover\:bg-red-500\/80:hover {
   background-color: rgb(239 68 68 / 0.8);
 }
@@ -1358,6 +1475,39 @@ video {
   color: rgb(248 113 113 / var(--tw-text-opacity, 1));
 }
 
+.hover\:shadow-2xl:hover {
+  --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+}
+
+/* focus */
+.focus\:border-primary:focus {
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-p, oklch(var(--p) / var(--tw-border-opacity)));
+}
+
+.focus\:outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* active (while pressed) */
+.active\:scale-95:active {
+  --tw-scale-x: 0.95;
+  --tw-scale-y: 0.95;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+/* group: parent with class "group" is focused / hovered */
+.group:focus-within .group-focus-within\:opacity-30 {
+  opacity: 0.3;
+}
+
 .group:focus-within .group-focus-within\:opacity-70 {
   opacity: 0.7;
 }
@@ -1366,6 +1516,22 @@ video {
   opacity: 0.6;
 }
 
+.group:hover .group-hover\:scale-110 {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.group:hover .group-hover\:bg-black\/40 {
+  background-color: rgb(0 0 0 / 0.4);
+}
+
+/* ══ 24. RESPONSIVE ═══════════════════════════════════════════
+   Always last, so screen-size rules override everything above. */
+
+/* md: tablets & desktops (768px and wider) */
 @media (min-width: 768px) {
   .md\:block {
     display: block;
@@ -1394,214 +1560,9 @@ video {
   }
 }
 
+/* lg: large screens (1024px and wider) */
 @media (min-width: 1024px) {
   .lg\:w-96 {
     width: 24rem;
   }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   UTILITIES MISSING FROM THE OLD BUILD — written exactly the way
-   Tailwind v3.4 + daisyUI 4.12 output them. Running
-   `npm run build:css` regenerates this whole file, so it is safe
-   to replace.
-═══════════════════════════════════════════════════════════ */
-.mb-1 {
-  margin-bottom: 0.25rem;
-}
-.mb-3 {
-  margin-bottom: 0.75rem;
-}
-.mt-4 {
-  margin-top: 1rem;
-}
-.mt-5 {
-  margin-top: 1.25rem;
-}
-.aspect-video {
-  aspect-ratio: 16 / 9;
-}
-.h-\[34px\] {
-  height: 34px;
-}
-.w-\[34px\] {
-  width: 34px;
-}
-.min-w-0 {
-  min-width: 0px;
-}
-.min-w-\[5\.5rem\] {
-  min-width: 5.5rem;
-}
-.min-w-\[8\.5rem\] {
-  min-width: 8.5rem;
-}
-.max-w-2xl {
-  max-width: 42rem;
-}
-.max-w-md {
-  max-width: 28rem;
-}
-.max-w-\[110px\] {
-  max-width: 110px;
-}
-.max-w-\[160px\] {
-  max-width: 160px;
-}
-.flex-shrink-0 {
-  flex-shrink: 0;
-}
-.shrink-0 {
-  flex-shrink: 0;
-}
-.grid-cols-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-.justify-end {
-  justify-content: flex-end;
-}
-.gap-2 {
-  gap: 0.5rem;
-}
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.rounded-\[10px\] {
-  border-radius: 10px;
-}
-.border-white\/20 {
-  border-color: rgb(255 255 255 / 0.2);
-}
-.bg-black\/0 {
-  background-color: rgb(0 0 0 / 0);
-}
-.bg-primary\/80 {
-  background-color: var(--fallback-p, oklch(var(--p) / 0.8));
-}
-.bg-red-500\/10 {
-  background-color: rgb(239 68 68 / 0.1);
-}
-.bg-white\/\[0\.02\] {
-  background-color: rgb(255 255 255 / 0.02);
-}
-.object-cover {
-  -o-object-fit: cover;
-  object-fit: cover;
-}
-.text-end {
-  text-align: end;
-}
-.font-mono {
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
-}
-.text-4xl {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-.text-\[11px\] {
-  font-size: 11px;
-}
-.text-\[12px\] {
-  font-size: 12px;
-}
-.font-semibold {
-  font-weight: 600;
-}
-.leading-snug {
-  line-height: 1.375;
-}
-.tracking-\[0\.1em\] {
-  letter-spacing: 0.1em;
-}
-.tracking-\[0\.2em\] {
-  letter-spacing: 0.2em;
-}
-.line-through {
-  text-decoration-line: line-through;
-}
-.accent-primary {
-  accent-color: var(--fallback-p, oklch(var(--p) / 1));
-}
-.opacity-65 {
-  opacity: 0.65;
-}
-.opacity-70 {
-  opacity: 0.7;
-}
-.opacity-75 {
-  opacity: 0.75;
-}
-.shadow-xl {
-  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --tw-shadow-colored:
-    0 20px 25px -5px var(--tw-shadow-color),
-    0 8px 10px -6px var(--tw-shadow-color);
-  box-shadow:
-    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
-    var(--tw-shadow);
-}
-.duration-150 {
-  transition-duration: 150ms;
-}
-.ease-out {
-  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
-}
-.\!text-\[10px\] {
-  font-size: 10px !important;
-}
-.\!tracking-wider {
-  letter-spacing: 0.05em !important;
-}
-.hover\:scale-\[1\.02\]:hover {
-  --tw-scale-x: 1.02;
-  --tw-scale-y: 1.02;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-.hover\:bg-primary:hover {
-  --tw-bg-opacity: 1;
-  background-color: var(--fallback-p, oklch(var(--p) / var(--tw-bg-opacity)));
-}
-.hover\:bg-red-500\/20:hover {
-  background-color: rgb(239 68 68 / 0.2);
-}
-.hover\:shadow-2xl:hover {
-  --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
-  box-shadow:
-    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
-    var(--tw-shadow);
-}
-.focus\:border-primary:focus {
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-p, oklch(var(--p) / var(--tw-border-opacity)));
-}
-.focus\:outline-none:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-.active\:scale-95:active {
-  --tw-scale-x: 0.95;
-  --tw-scale-y: 0.95;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-.group:focus-within .group-focus-within\:opacity-30 {
-  opacity: 0.3;
-}
-.group:hover .group-hover\:scale-110 {
-  --tw-scale-x: 1.1;
-  --tw-scale-y: 1.1;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
-    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-.group:hover .group-hover\:bg-black\/40 {
-  background-color: rgb(0 0 0 / 0.4);
 }
