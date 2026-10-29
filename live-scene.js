@@ -19,7 +19,7 @@
    02. Time-of-day palette
    03. WebGL helpers (programs, uniforms, framebuffers)
    04. Shared GLSL (noise)
-   05. Scene: Aurora
+   05. Scene: Aurora (neon northern lights, endless ping-pong motion)
    06. Scene: Lava Lamp (heat + connection physics)
    08. Scene: Ink (fluid simulation)
    09. Scene: Star Field
@@ -320,36 +320,72 @@ uniform vec3 uC0, uC1, uC2;
     };
   }
 
-  /* ══ 05. SCENE: AURORA ═════════════════════════════════════
-     Three glowing curtains rendered at full screen resolution:
-     crisp lower edge, fine moving light rays, soft fade upward,
-     a mirrored glow on the horizon and twinkling stars.
-     Curtains sway on their own and bend toward the cursor. */
+  /* ══ 05. SCENE: AURORA (neon northern lights) ══════════════
+     • Neon northern-lights palette: green / lime / teal / cyan low,
+       pink → violet high up (like real auroras), lightly tinted by
+       your theme (AURORA_CFG.themeMix).
+     • Dense: 5 overlapping curtains with curling folds, fine rays and
+       a soft background wash, so there is never an empty gap.
+     • Endless + smooth: time runs forward, then smoothly eases into
+       reverse and back again (ping-pong with rounded turns). No restart,
+       no jump, no "snap back" — and numbers stay small forever, so the
+       noise never degrades after the tab has been open for hours. */
+  const AURORA_CFG = {
+    layers: 5, // curtains (3–7). More = denser, slightly heavier
+    loopSeconds: 600, // seconds before the motion smoothly reverses
+    themeMix: 0.15, // 0 = pure neon, 1 = pure theme colors
+    brightness: 0.8, // overall glow strength (lower = easier on the eyes)
+  };
+
   const AuroraScene = shaderScene({
     resolution: (eco) => (eco ? 0.65 : 1),
     maxDpr: 1.5,
     frag: `
+#define LAYERS ${AURORA_CFG.layers}
+#define LOOP ${AURORA_CFG.loopSeconds.toFixed(1)}
+#define THEME_MIX ${AURORA_CFG.themeMix.toFixed(3)}
+#define BRIGHT ${AURORA_CFG.brightness.toFixed(3)}
+#define PI 3.14159265
+
+// neon northern-lights colors (low altitude)
+const vec3 NEON[6] = vec3[6](
+  vec3(0.10, 1.00, 0.45),  // neon green
+  vec3(0.00, 1.00, 0.78),  // neon teal
+  vec3(0.55, 1.00, 0.12),  // neon lime
+  vec3(0.05, 0.85, 1.00),  // electric cyan
+  vec3(0.20, 1.00, 0.30),  // aurora green
+  vec3(0.00, 0.95, 0.60)   // mint
+);
+// high-altitude colors (tops of the curtains)
+const vec3 HIGH_A = vec3(1.00, 0.18, 0.70); // neon pink
+const vec3 HIGH_B = vec3(0.62, 0.22, 1.00); // electric violet
+
+// forward → smooth reverse → forward… (rounded turns, never a jump)
+float loopTime(float t) {
+  float a = cos(PI * t / LOOP);
+  return LOOP * acos(clamp(0.997 * a, -1.0, 1.0)) / PI;
+}
+
 // thin vertical rays: sharp, high-frequency noise only along x
 float rays(float x, float t, float seed) {
   float r = 0.0;
-  r += noise(vec2(x * 38.0 + seed, t * 0.35)) * 0.55;
+  r += noise(vec2(x * 38.0 + seed, t * 0.35)) * 0.5;
   r += noise(vec2(x * 95.0 - seed * 2.0, t * 0.6)) * 0.3;
-  r += noise(vec2(x * 210.0 + seed * 3.0, t * 0.9)) * 0.15;
-  return smoothstep(0.28, 0.95, r);
+  r += noise(vec2(x * 210.0 + seed * 3.0, t * 0.9)) * 0.2;
+  return smoothstep(0.25, 0.92, r);
 }
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uRes;
   float asp = uRes.x / uRes.y;
   float x = uv.x * asp;
-  float t = uTime;
+  float t = loopTime(uTime);
   vec2 m = vec2(uMouse.x * asp, uMouse.y);
 
-  // deep night sky with a faint horizon glow
-  vec3 col = mix(vec3(0.004, 0.006, 0.016), vec3(0.012, 0.018, 0.04), smoothstep(0.0, 1.0, uv.y));
-  col += uC0 * 0.04 * exp(-uv.y * 5.0);
+  // deep night sky
+  vec3 col = mix(vec3(0.003, 0.006, 0.014), vec3(0.010, 0.012, 0.035), smoothstep(0.0, 1.0, uv.y));
 
-  // crisp stars (resolution independent, round)
+  // crisp stars (round, resolution independent)
   vec2 g = vec2(x, uv.y) * 140.0;
   vec2 cell = floor(g);
   float h = hash(cell);
@@ -357,53 +393,63 @@ void main() {
     vec2 sp = vec2(hash(cell + 3.1), hash(cell + 7.7)) * 0.6 + 0.2;
     float d = length(fract(g) - sp) * 140.0 / uRes.y * 900.0;
     float tw = 0.55 + 0.45 * sin(t * 1.9 + h * 50.0);
-    col += smoothstep(1.6, 0.0, d) * 0.7 * tw * smoothstep(0.2, 0.7, uv.y);
+    col += smoothstep(1.6, 0.0, d) * 0.6 * tw * smoothstep(0.3, 0.8, uv.y);
   }
 
-  vec3 glow = vec3(0.0);
-  for (int i = 0; i < 3; i++) {
-    float fi = float(i);
-    vec3 c = i == 0 ? uC0 : (i == 1 ? uC1 : uC2);
-    c = mix(c, vec3(0.55, 1.0, 0.85), 0.08); // a touch of real aurora green
+  // soft continuous wash behind the curtains (fills every gap)
+  float wash = fbm(vec2(x * 0.7 + t * 0.02, uv.y * 1.5 - t * 0.015));
+  col += mix(NEON[0], NEON[3], wash) * 0.07 * BRIGHT * exp(-pow(uv.y - 0.38, 2.0) * 7.0);
 
-    // curtain bottom edge: big slow waves + finer folds
-    float edge = 0.30 + fi * 0.11
-      + 0.07 * sin(x * 1.3 + t * 0.10 * (1.0 + fi * 0.35) + fi * 2.3)
-      + 0.035 * sin(x * 4.1 - t * 0.21 + fi * 4.0)
-      + 0.06 * (fbm(vec2(x * 0.8 + t * 0.03 + fi * 5.0, fi)) - 0.5);
+  vec3 glow = vec3(0.0);
+  for (int i = 0; i < LAYERS; i++) {
+    float fi = float(i);
+    float k = fi / float(max(LAYERS - 1, 1)); // 0 = lowest curtain, 1 = highest
+
+    vec3 low = mix(NEON[i % 6], i % 2 == 0 ? uC0 : uC1, THEME_MIX);
+    vec3 high = mix(HIGH_A, HIGH_B, k);
+
+    // curling folds: warp x so curtains bend and twist
+    float xw = x + 0.35 * (fbm(vec2(x * 0.6 + fi * 3.7, t * 0.05 + fi)) - 0.5);
+
+    // curtain bottom edge
+    float edge = 0.20 + k * 0.30
+      + 0.06 * sin(xw * 1.4 + t * 0.12 * (1.0 + fi * 0.25) + fi * 2.1)
+      + 0.03 * sin(xw * 3.7 - t * 0.19 + fi * 4.3)
+      + 0.08 * (fbm(vec2(xw * 0.9 + t * 0.04 + fi * 5.0, fi * 1.3)) - 0.5);
 
     // bend toward the cursor
     float near = exp(-pow(x - m.x, 2.0) * 4.0) * uStrength;
-    edge += (m.y - 0.12 - edge) * 0.28 * near;
+    edge += (m.y - 0.12 - edge) * 0.25 * near;
 
     float d = uv.y - edge;
-    float height = 0.22 + 0.16 * fbm(vec2(x * 1.6 - t * 0.04, fi * 7.0));
+    float height = 0.28 + 0.18 * fbm(vec2(xw * 1.3 - t * 0.03, fi * 7.0));
 
     // sharp lower edge (anti-aliased), long soft fade upward
     float aa = 1.5 / uRes.y;
-    float lower = smoothstep(-0.012 - aa, 0.004, d);
-    float upper = exp(-max(d, 0.0) / height * 2.2);
+    float lower = smoothstep(-0.014 - aa, 0.004, d);
+    float upper = exp(-max(d, 0.0) / height * 2.0);
     float body = lower * upper;
-    float rim = exp(-abs(d - 0.006) * 140.0) * 0.6; // bright line along the edge
+    float rim = exp(-abs(d - 0.006) * 140.0) * 0.55;
 
-    float r = rays(x + fi * 1.7, t, fi * 11.0);
-    float flicker = 0.8 + 0.2 * noise(vec2(x * 3.0 + t * 0.5, fi * 9.0));
-    float intensity = (body * (0.25 + 1.1 * r) + rim * (0.4 + r)) * flicker * (0.75 + 0.6 * near);
+    float r = rays(xw + fi * 1.7, t, fi * 11.0);
+    // brightness waves travelling along the curtain (never fully dark)
+    float pulse = 0.72 + 0.28 * sin(t * 0.4 + fi * 1.9 + xw * 0.8);
+    float intensity = (body * (0.35 + 1.15 * r) + rim * (0.5 + r)) * pulse * (0.8 + 0.5 * near) * (1.0 - 0.3 * k);
 
-    // color shifts slightly with height (greener low, warmer/purple high)
-    vec3 tint = mix(c, mix(c, uC2, 0.6), smoothstep(0.0, height * 1.5, d));
+    // green low → pink/violet high, like real auroras
+    vec3 tint = mix(low, high, smoothstep(0.02, height * 1.1, d) * 0.85);
     glow += tint * intensity;
   }
-  col += glow;
+  col += glow * (0.85 / sqrt(float(LAYERS) / 3.0)) * BRIGHT;
 
-  // soft reflection glow near the horizon
-  col += mix(uC0, uC1, 0.5) * 0.05 * exp(-uv.y * 9.0);
+  // horizon glow
+  col += NEON[0] * 0.05 * BRIGHT * exp(-uv.y * 9.0);
 
   // gentle glow around the cursor
   vec2 dm = vec2(x, uv.y) - m;
-  col += mix(uC1, vec3(1.0), 0.3) * 0.04 * exp(-dot(dm, dm) * 14.0) * uStrength;
+  col += mix(NEON[1], vec3(1.0), 0.3) * 0.04 * exp(-dot(dm, dm) * 14.0) * uStrength;
 
-  col = 1.0 - exp(-col * 1.35); // soft tone mapping (no clipping)
+  col = 1.0 - exp(-col * 1.35); // soft tone mapping (no clipping, no harsh white)
   fragColor = vec4(dither(col), 1.0);
 }`,
   });
@@ -417,15 +463,53 @@ void main() {
        (gooey necks); merged blobs share heat, and when one gets hotter
        it stretches the neck and pinches off again
      • blobs stretch tall while moving fast, like real wax
-     • your cursor is a soft heat source: blobs drift toward it and warm up */
+     • your cursor is a soft heat source: blobs drift toward it and warm up
+
+     Fixes:
+     • ALL wax is always clearly visible: wax colors are forced to a
+       minimum brightness, so cool blobs no longer turn dark and vanish
+       into the background (that was the "invisible chunks").
+     • One wax color per lamp (cool → hot only changes the shade a little),
+       so blobs no longer look like different sizes / magnified.
+     • Blobs stay fully inside the screen (no more cut-off edges at the
+       top or sides), and the bottom pool blends smoothly (no flat crease).
+     • Stretching keeps the same amount of wax (no sudden growing). */
   const LAVA_CFG = {
     count: 7, // 6–8 looks most like a real lamp (max 8)
     buoyancy: 0.45, // how strongly hot wax rises / cold wax sinks
     cohesion: 0.6, // how strongly blobs pull together
     viscosity: 1.2, // liquid drag (higher = slower, thicker)
     mouse: 0.35, // cursor pull (0 = off)
+    // wax colors: cool (top) → hot (bottom). Classic lava-lamp neon.
+    coolColor: "#ff2d95", // neon pink
+    hotColor: "#ff7a18", // neon orange
+    themeMix: 0.25, // 0 = only the colors above, 1 = only theme colors
+    minBrightness: 0.5, // wax is never darker than this (0–1)
   };
   const LAVA_MAX = 8; // must match the shader arrays
+
+  // lift a color so its brightness is at least `min` (keeps the hue)
+  function liftColor(rgb, min) {
+    const lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+    if (lum >= min) return rgb;
+    // blend toward a bright version of the same hue
+    const max = Math.max(rgb.r, rgb.g, rgb.b, 1);
+    const vivid = {
+      r: (rgb.r / max) * 255,
+      g: (rgb.g / max) * 255,
+      b: (rgb.b / max) * 255,
+    };
+    const vlum = (0.299 * vivid.r + 0.587 * vivid.g + 0.114 * vivid.b) / 255;
+    let out = vivid;
+    if (vlum < min) {
+      const t = (min - vlum) / Math.max(1e-3, 1 - vlum);
+      out = Color.mixRgb(vivid, { r: 255, g: 255, b: 255 }, t);
+    } else {
+      const t = (min - lum) / Math.max(1e-3, vlum - lum);
+      out = Color.mixRgb(rgb, vivid, Math.min(1, t));
+    }
+    return out;
+  }
 
   const LavaScene = shaderScene({
     resolution: (eco) => (eco ? 0.6 : 1),
@@ -435,6 +519,7 @@ uniform vec4 uB[${LAVA_MAX}]; // xy = position, z = radius, w = heat
 uniform vec4 uS[${LAVA_MAX}]; // x = vertical stretch
 uniform int uN;
 uniform float uAsp;
+uniform vec3 uCool, uHot; // bright wax colors (from JS)
 
 // x = field strength, y = heat (weighted by each blob's influence)
 vec2 field(vec2 p) {
@@ -443,17 +528,18 @@ vec2 field(vec2 p) {
     if (i >= uN) break;
     vec2 d = p - uB[i].xy;
     float s = uS[i].x;
-    d.y /= s; // taller…
-    d.x *= s; // …and thinner (keeps the same amount of wax)
-    // softened falloff: smooth all the way to the center (no spike, no crease)
+    d.y /= s;          // taller…
+    d.x *= s;          // …and thinner (same amount of wax)
+    // softened falloff: smooth all the way to the center
     float r2 = uB[i].z * uB[i].z;
     float c = r2 / (dot(d, d) + r2 * 0.15);
     v += c;
     h += c * uB[i].w;
   }
-  // hot wax pool along the bottom, gently rolling
+  // hot wax pool along the bottom, gently rolling (soft cap → no crease)
   float wave = 0.010 * sin(p.x * 6.0 + uTime * 0.35) + 0.007 * sin(p.x * 13.0 - uTime * 0.27);
-  float pool = min(1.45 * exp(-(p.y - wave) / 0.05), 6.0);
+  float pool = 1.45 * exp(-(p.y - wave) / 0.05);
+  pool = pool / (1.0 + pool / 6.0);
   v += pool;
   h += pool;
   return vec2(v, h / max(v, 1e-5));
@@ -464,9 +550,9 @@ void main() {
   vec2 p = vec2(uv.x * uAsp, uv.y);
   float t = uTime;
 
-  // soft wobble so wax edges ripple a little
+  // very soft wobble so wax edges ripple a little (small → never tears)
   vec2 q = p + vec2(noise(p * 3.0 + vec2(t * 0.2, 0.0)) - 0.5,
-                    noise(p * 3.0 + vec2(5.2, -t * 0.18)) - 0.5) * 0.025;
+                    noise(p * 3.0 + vec2(5.2, -t * 0.18)) - 0.5) * 0.014;
 
   vec2 F = field(q);
   float f = F.x;
@@ -474,30 +560,29 @@ void main() {
   // surface normal from the field → round, glossy wax
   float e = 0.0025;
   vec2 g = vec2(field(q + vec2(e, 0.0)).x - f, field(q + vec2(0.0, e)).x - f) / e;
-  vec3 n = normalize(vec3(-g / (f * f + 1e-3) * 0.03, 1.0));
+  vec3 n = normalize(vec3(-g / (f * f + 0.5) * 0.03, 1.0));
 
   // anti-aliased edge (smooth at any resolution)
   float aa = fwidth(f) * 1.2 + 1e-4;
   float edge = smoothstep(1.0 - aa, 1.0 + aa, f);
 
-  // wax color by heat: cool (uC2) → warm (uC1) → hot (uC0)
+  // one wax color, shade follows heat (always bright)
   float heat = clamp(F.y, 0.0, 1.0);
-  vec3 wax = heat > 0.5 ? mix(uC1, uC0, (heat - 0.5) * 2.0) : mix(uC2, uC1, heat * 2.0);
-  wax = mix(wax, vec3(1.0), 0.08);
+  vec3 wax = mix(uCool, uHot, smoothstep(0.15, 0.85, heat));
 
   vec3 L = normalize(vec3(-0.35, 0.55, 0.75));
   float diff = clamp(dot(n, L), 0.0, 1.0);
   float spec = pow(clamp(dot(reflect(-L, n), vec3(0, 0, 1)), 0.0, 1.0), 16.0);
   float rim = 1.0 - n.z;
-  vec3 waxCol = wax * (0.45 + 0.65 * diff) + wax * rim * 0.55 + spec * 0.28;
-  waxCol += wax * smoothstep(1.5, 5.0, f) * 0.18; // glowing core
+  vec3 waxCol = wax * (0.62 + 0.45 * diff) + wax * rim * 0.4 + spec * 0.22;
+  waxCol += wax * smoothstep(1.5, 5.0, f) * 0.12; // glowing core
 
   // lamp liquid: dark, tinted, lit by the wax
-  vec3 bg = mix(uC0 * 0.10, uC2 * 0.05, uv.y) + vec3(0.012, 0.010, 0.020);
-  bg += wax * smoothstep(0.25, 1.0, f) * (1.0 - edge) * 0.35; // glow halo
-  bg += uC0 * 0.10 * exp(-uv.y * 6.0); // heat glow from the bottom
+  vec3 bg = mix(uHot * 0.08, uCool * 0.05, uv.y) + vec3(0.012, 0.010, 0.020);
+  bg += wax * smoothstep(0.3, 1.0, f) * (1.0 - edge) * 0.3; // glow halo
+  bg += uHot * 0.08 * exp(-uv.y * 6.0);                      // heat glow from the bottom
   float side = 0.5 - abs(uv.x - 0.5);
-  bg *= 0.7 + 0.3 * smoothstep(0.0, 0.35, side); // glass-lamp shading
+  bg *= 0.75 + 0.25 * smoothstep(0.0, 0.35, side);           // glass-lamp shading
 
   vec3 col = mix(bg, waxCol, edge);
   col = 1.0 - exp(-col * 1.4);
@@ -507,18 +592,21 @@ void main() {
       const rnd = seeded(2024);
       const n = Math.max(6, Math.min(LAVA_MAX, LAVA_CFG.count));
       this.blobs = Array.from({ length: n }, (_, i) => ({
-        x: 0.15 + rnd() * 1.4,
-        y: 0.15 + rnd() * 0.75,
+        x: 0.1 + rnd() * 0.8, // 0..1 share of the width (scaled on first frame)
+        y: 0.15 + rnd() * 0.7,
         vx: 0,
         vy: 0,
-        r: 0.06 + rnd() * 0.035,
+        r0: 0.065 + rnd() * 0.025, // similar sizes → no "magnified" blob
+        r: 0,
         heat: rnd(),
         s: 1,
         seed: i * 9.17 + rnd() * 5,
       }));
+      this.asp = 0;
       this.bufB = new Float32Array(LAVA_MAX * 4);
       this.bufS = new Float32Array(LAVA_MAX * 4);
       this.time = 0;
+      this.palRef = null;
     },
     update(e, dt) {
       const asp = e.w / e.h;
@@ -528,6 +616,32 @@ void main() {
       const mouseOn = p.inside ? p.strength : 0;
       const B = this.blobs;
       const n = B.length;
+
+      // wax colors (recomputed only when the palette changes)
+      if (this.palRef !== e.palette) {
+        this.palRef = e.palette;
+        const mixC = (hex, themeRgb) =>
+          liftColor(
+            Color.mixRgb(Color.hexToRgb(hex), themeRgb, LAVA_CFG.themeMix),
+            LAVA_CFG.minBrightness,
+          );
+        const cool = mixC(LAVA_CFG.coolColor, e.palette[2] || e.palette[0]);
+        const hot = mixC(LAVA_CFG.hotColor, e.palette[0]);
+        this.cool = [cool.r / 255, cool.g / 255, cool.b / 255];
+        this.hot = [hot.r / 255, hot.g / 255, hot.b / 255];
+      }
+
+      // screen shape changed (first frame, rotation, resize) → keep blobs in
+      // the same relative spot and resize them for narrow screens
+      if (this.asp !== asp) {
+        const k = this.asp ? asp / this.asp : asp; // first frame: x was 0..1
+        const sizeK = Math.min(1, Math.max(0.6, asp)); // smaller blobs in portrait
+        for (const b of B) {
+          b.x *= k;
+          b.r = b.r0 * sizeK;
+        }
+        this.asp = asp;
+      }
 
       // small fixed steps → stable physics at any speed
       const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
@@ -539,7 +653,6 @@ void main() {
         for (const b of B) {
           b.ax = 0;
           b.ay = 0;
-          if (b.x > asp) b.x = asp - b.r; // window got narrower
 
           // heat: bottom heats, top cools, slow cooling while travelling
           if (b.y < 0.2) b.heat += 0.28 * h;
@@ -607,27 +720,29 @@ void main() {
           b.x += b.vx * h;
           b.y += b.vy * h;
 
-          // glass walls (soft bounce)
-          if (b.x < b.r * 0.8) {
-            b.x = b.r * 0.8;
+          // glass walls: keep the WHOLE blob on screen (no cut-off edges)
+          const rx = (b.r * 1.05) / b.s; // thinner while stretched
+          const ry = b.r * 1.05 * b.s; // taller while stretched
+          if (b.x < rx) {
+            b.x = rx;
             b.vx = Math.abs(b.vx) * 0.3;
           }
-          if (b.x > asp - b.r * 0.8) {
-            b.x = asp - b.r * 0.8;
+          if (b.x > asp - rx) {
+            b.x = asp - rx;
             b.vx = -Math.abs(b.vx) * 0.3;
           }
-          if (b.y < b.r * 0.4) {
-            b.y = b.r * 0.4;
+          if (b.y < ry * 0.5) {
+            b.y = ry * 0.5; // bottom: may dip into the wax pool
             b.vy = Math.abs(b.vy) * 0.2;
           }
-          if (b.y > 1 - b.r * 0.7) {
-            b.y = 1 - b.r * 0.7;
+          if (b.y > 1 - ry) {
+            b.y = 1 - ry;
             b.vy = -Math.abs(b.vy) * 0.2;
           }
 
-          // stretch tall while moving vertically
-          const want = 1 + Math.min(0.38, Math.abs(b.vy) * 3.5);
-          b.s += (want - b.s) * Math.min(1, h * 3);
+          // stretch tall while moving vertically (gentle, capped)
+          const want = 1 + Math.min(0.25, Math.abs(b.vy) * 2.5);
+          b.s += (want - b.s) * Math.min(1, h * 2);
         }
       }
 
@@ -637,11 +752,18 @@ void main() {
         const b = B[i];
         BB[i * 4] = b.x;
         BB[i * 4 + 1] = b.y;
-        BB[i * 4 + 2] = b.r * (1 + 0.05 * Math.sin(this.time * 0.5 + b.seed));
+        BB[i * 4 + 2] = b.r * (1 + 0.04 * Math.sin(this.time * 0.5 + b.seed));
         BB[i * 4 + 3] = b.heat;
         SS[i * 4] = b.s;
       }
-      return { uB: BB, uS: SS, uN: { int: n }, uAsp: asp };
+      return {
+        uB: BB,
+        uS: SS,
+        uN: { int: n },
+        uAsp: asp,
+        uCool: this.cool,
+        uHot: this.hot,
+      };
     },
   });
 
@@ -649,7 +771,7 @@ void main() {
      A real (simplified) fluid: every mouse movement instantly pushes
      velocity + ink into the fluid, which swirls and diffuses.
      Click the background → burst of ink in a RANDOM color from
-     INK_COLORS (15 colors). The color is remembered.
+     INK_COLORS. The color is remembered.
      Anti-glare: new ink REPLACES the old color under the cursor
      instead of piling on top, so hovering / circling for a long time
      never builds up into bright white. Brightness is also capped.
@@ -783,26 +905,56 @@ void main() {
   // Click the background → a random color from this list.
   // Before the first click the ink uses your theme colors.
   const INK_COLORS = [
+    { name: "Fluorescent Turquoise", hex: "#00fdff" },
+    { name: "Neon Mint", hex: "#00ff73" },
+    { name: "Bright Teal", hex: "#01f9c6" },
+    { name: "Neon Blue", hex: "#04d9ff" },
+    { name: "Fluorescent Green", hex: "#08ff08" },
+    { name: "Luminous Blue", hex: "#0922ff" },
+    { name: "Electric Cyan", hex: "#0ff0fc" },
+    { name: "Electric Green", hex: "#21fc0d" },
     { name: "Neon Green", hex: "#39ff14" },
-    { name: "Neon Lime", hex: "#ccff00" },
-    { name: "Electric Chartreuse", hex: "#a6ff00" },
-    { name: "Neon Mint", hex: "#00ff9f" },
-    { name: "Neon Aqua", hex: "#00fff0" },
-    { name: "Electric Cyan", hex: "#00e5ff" },
-    { name: "Laser Blue", hex: "#1f51ff" },
-    { name: "Electric Indigo", hex: "#6f00ff" },
-    { name: "Neon Violet", hex: "#b026ff" },
+    { name: "Neon Aqua", hex: "#50e3fc" },
+    { name: "Electric Sheep", hex: "#55ffff" },
+    { name: "Electric Indigo", hex: "#6600ff" },
+    { name: "Bright Green", hex: "#66ff00" },
+    { name: "Electric Violet", hex: "#8f00f1" },
+    { name: "Neon Grape", hex: "#a3148f" },
+    { name: "Neon Purple", hex: "#bc13fe" },
+    { name: "Bright Purple", hex: "#be03fd" },
     { name: "Electric Purple", hex: "#bf00ff" },
-    { name: "Neon Magenta", hex: "#ff00ff" },
-    { name: "Hot Pink", hex: "#ff1493" },
-    { name: "Neon Pink", hex: "#ff3cac" },
-    { name: "Neon Rose", hex: "#ff0066" },
+    { name: "Electric Lime", hex: "#ccff00" },
+    { name: "Fluorescent Yellow", hex: "#ccff02" },
+    { name: "Neon Yellow", hex: "#cfff04" },
+    { name: "Bright Chartreuse", hex: "#dfff11" },
+    { name: "Electric Red", hex: "#e60000" },
+    { name: "Neon Coral", hex: "#f86f88" },
+    { name: "Bright Scarlet", hex: "#fc0e34" },
+    { name: "Electric Flamingo", hex: "#fc74fd" },
+    { name: "Fluorescent Red Orange", hex: "#fc8427" },
+    { name: "Neon Tangerine", hex: "#fd5a12" },
+    { name: "Neon Pink", hex: "#fe019a" },
+    { name: "Bright Pink", hex: "#fe01b1" },
+    { name: "Fluorescent Pink", hex: "#fe1493" },
+    { name: "Neon Fuchsia", hex: "#fe4164" },
+    { name: "Bright Red", hex: "#ff000d" },
+    { name: "Electric Crimson", hex: "#ff003f" },
+    { name: "Pinkish Red Neon", hex: "#ff0055" },
+    { name: "Neon Raspberry", hex: "#ff0088" },
+    { name: "Electric Pink", hex: "#ff0490" },
     { name: "Neon Red", hex: "#ff073a" },
-    { name: "Neon Coral", hex: "#ff4f3a" },
-    { name: "Neon Orange", hex: "#ff6700" },
-    { name: "Neon Tangerine", hex: "#ff9500" },
-    { name: "Electric Yellow", hex: "#ffff33" },
-    { name: "Neon Gold", hex: "#ffe100" },
+    { name: "Bright Magenta", hex: "#ff08e8" },
+    { name: "Neon Hot Pink", hex: "#ff0aef" },
+    { name: "Light Neon Pink", hex: "#ff11ff" },
+    { name: "Neon Ruby", hex: "#ff2125" },
+    { name: "Electric Orange", hex: "#ff3503" },
+    { name: "Fluorescent Red", hex: "#ff5555" },
+    { name: "Neon Carrot", hex: "#ff9933" },
+    { name: "Neon Amber", hex: "#ffc000" },
+    { name: "Fluorescent Orange", hex: "#ffcf00" },
+    { name: "Bright Saffron", hex: "#ffcf09" },
+    { name: "Neon Lemon", hex: "#fffb17" },
+    { name: "Electric Yellow", hex: "#fffc00" },
   ];
 
   const INK_LEVEL = 0.75; // how strong the ink color is (lower = darker, softer)
@@ -1082,7 +1234,7 @@ void main() {
           uSource: this.dye.read.tex,
           texelSize: ts,
           dt: step,
-          dissipation: 0.35,
+          dissipation: 1,
         });
         drawTo(e, this.dye.write);
         this.dye.swap();
@@ -1975,8 +2127,12 @@ void main() {
     if (!canvas || !scene) return;
     const dpr = Math.min(window.devicePixelRatio || 1, scene.maxDpr ?? 1);
     const s = scene.resolution(engine.eco) * dpr;
-    const w = Math.max(1, Math.round(window.innerWidth * s));
-    const h = Math.max(1, Math.round(window.innerHeight * s));
+
+    // real on-screen size (correct on tablets/phones, where 100vh and
+    // innerHeight differ because of the browser's address bar)
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round((rect.width || window.innerWidth) * s));
+    const h = Math.max(1, Math.round((rect.height || window.innerHeight) * s));
     canvas.width = w;
     canvas.height = h;
     engine.w = w;
@@ -2075,6 +2231,14 @@ void main() {
       },
       opts,
     );
+    // tablets: rotation and browser-bar show/hide don't always fire "resize"
+    const resizeSoon = () => {
+      clearTimeout(engine.resizeTimer);
+      engine.resizeTimer = setTimeout(resize, 200);
+    };
+    window.addEventListener("orientationchange", resizeSoon, opts);
+    window.visualViewport?.addEventListener("resize", resizeSoon, opts);
+
     document.addEventListener(
       "visibilitychange",
       () => (document.hidden ? stop() : start()),

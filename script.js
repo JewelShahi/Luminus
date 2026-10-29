@@ -39,27 +39,33 @@ const FALLBACK_BG = "backgrounds/background-image.png";
 const PRESET_WALLPAPERS = [
   {
     id: "gojo-1",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652796/satoru-gojo-1-4k_v0thvc.jpg",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652796/satoru-gojo-1-4k_v0thvc.jpg",
   },
   {
     id: "kagurabachi",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785792406/kagurabachi_qdtheh.jpg",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785792406/kagurabachi_qdtheh.jpg",
   },
   {
     id: "gojo-3",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652901/gojo_eyes_rwqbsb.png",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779652901/gojo_eyes_rwqbsb.png",
   },
   {
     id: "kafka-hibino",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785792544/kafka-hibino_loenym.jpg",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785792544/kafka-hibino_loenym.jpg",
   },
   {
     id: "hoshino",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785793600/hoshino_b3wd5k.jpg",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/v1785793600/hoshino_b3wd5k.jpg",
   },
   {
     id: "liebe-black-clover",
-    value: "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779654342/liebe-black-clover_tkchnm.jpg",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/image/upload/w_2560,q_90,f_auto/v1779654342/liebe-black-clover_tkchnm.jpg",
   },
   {
     id: "default-bg",
@@ -67,23 +73,28 @@ const PRESET_WALLPAPERS = [
   },
   {
     id: "sukuna-vs-gojo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_30/v1785789580/sukuna-vs-gojo_dwkzlp.mp4",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_30/v1785789580/sukuna-vs-gojo_dwkzlp.mp4",
   },
   {
     id: "kokushibo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_30/v1785793601/kokushibo_hq6r3t.mp4",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/video/upload/w_1920,q_auto:eco,f_auto,fps_30/v1785793601/kokushibo_hq6r3t.mp4",
   },
   {
     id: "sung-jin-woo",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785794123/sung-jin-woo_q4bkvh.mp4",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785794123/sung-jin-woo_q4bkvh.mp4",
   },
   {
     id: "sung-jin-woo-stare",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785933141/sung-jin-woo-stare_akcntt.mp4",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785933141/sung-jin-woo-stare_akcntt.mp4",
   },
   {
     id: "gojo-domain-expansion",
-    value: "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785933193/gojo-domain-expansion_hccc1d.mp4",
+    value:
+      "https://res.cloudinary.com/dbgpxmjln/video/upload/w_2560,q_auto:eco,f_auto,fps_30/v1785933193/gojo-domain-expansion_hccc1d.mp4",
   },
 ];
 
@@ -93,13 +104,55 @@ const DEFAULT_THEME = "blue";
 
 // One-click starting points inside the custom theme editor
 const CUSTOM_THEME_PRESETS = [
-  { name: "Synthwave", primary: "#ff2bd6", a: "#7c3aed", b: "#ff2bd6", c: "#22d3ee" },
-  { name: "Deep Sea", primary: "#06b6d4", a: "#0ea5e9", b: "#14b8a6", c: "#1e3a8a" },
-  { name: "Matcha", primary: "#84cc16", a: "#22c55e", b: "#a3e635", c: "#0f766e" },
-  { name: "Blood Moon", primary: "#ef4444", a: "#7f1d1d", b: "#f97316", c: "#db2777" },
-  { name: "Golden Hour", primary: "#f59e0b", a: "#f97316", b: "#fde047", c: "#ec4899" },
-  { name: "Glacier", primary: "#7dd3fc", a: "#93c5fd", b: "#c4b5fd", c: "#67e8f9" },
-  { name: "Obsidian", primary: "#a1a1aa", a: "#3f3f46", b: "#71717a", c: "#52525b" },
+  {
+    name: "Synthwave",
+    primary: "#ff2bd6",
+    a: "#7c3aed",
+    b: "#ff2bd6",
+    c: "#22d3ee",
+  },
+  {
+    name: "Deep Sea",
+    primary: "#06b6d4",
+    a: "#0ea5e9",
+    b: "#14b8a6",
+    c: "#1e3a8a",
+  },
+  {
+    name: "Matcha",
+    primary: "#84cc16",
+    a: "#22c55e",
+    b: "#a3e635",
+    c: "#0f766e",
+  },
+  {
+    name: "Blood Moon",
+    primary: "#ef4444",
+    a: "#7f1d1d",
+    b: "#f97316",
+    c: "#db2777",
+  },
+  {
+    name: "Golden Hour",
+    primary: "#f59e0b",
+    a: "#f97316",
+    b: "#fde047",
+    c: "#ec4899",
+  },
+  {
+    name: "Glacier",
+    primary: "#7dd3fc",
+    a: "#93c5fd",
+    b: "#c4b5fd",
+    c: "#67e8f9",
+  },
+  {
+    name: "Obsidian",
+    primary: "#a1a1aa",
+    a: "#3f3f46",
+    b: "#71717a",
+    c: "#52525b",
+  },
 ];
 
 // Task priority colors (tap one in the task modal, or pick any color on the wheel)
@@ -163,13 +216,17 @@ function writeJSON(key, value) {
 }
 
 function escapeHtml(str) {
-  return String(str ?? "").replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  })[c]);
+  return String(str ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[c],
+  );
 }
 
 // Set the same text on several elements (mobile + desktop copies)
@@ -202,7 +259,9 @@ const state = {
   username: safeGet("gx_username") || "",
   customThemes: (() => {
     const p = readJSON("gx_custom_themes", []);
-    return Array.isArray(p) ? p.filter((t) => t && t.id && LuminusColor.isHex(t.primary)) : [];
+    return Array.isArray(p)
+      ? p.filter((t) => t && t.id && LuminusColor.isHex(t.primary))
+      : [];
   })(),
   customActive: safeGet("gx_custom_active"),
   scene: { ...SCENE_DEFAULTS, ...readJSON("gx_scene", {}) },
@@ -306,63 +365,80 @@ const slots = [
   {
     min: 0,
     max: 3,
-    greet: "Working late",
-    focus:
-      "Finishing up, or just getting started? Either way, lets make it count.",
+    greet: "A quiet hello",
+    focus: "Keeping late hours? Take things at your own pace.",
   },
   {
     min: 3,
     max: 5,
-    greet: "Up early",
-    focus: "Focused work matters, but so does rest. Make sure to take breaks.",
+    greet: "An early hello",
+    focus: "A quiet start. Make room for rest, too.",
   },
   {
     min: 5,
     max: 7,
     greet: "Good early morning",
-    focus: "Ahead of the crowd. Lets do this.",
+    focus: "A fresh start, ahead of the day.",
   },
   {
     min: 7,
     max: 9,
-    greet: "Ready for the day",
-    focus: "Grab your coffee. Whats the plan today?",
+    greet: "Good morning",
+    focus: "Ease into the day. Choose what matters.",
   },
   {
     min: 9,
-    max: 12,
+    max: 11,
     greet: "Good morning",
-    focus: "Peak focus hours. Lets crush it.",
+    focus: "Fresh perspective. Clear priorities.",
+  },
+  {
+    min: 11,
+    max: 12,
+    greet: "Good late morning",
+    focus: "A little progress before a well-earned pause.",
   },
   {
     min: 12,
-    max: 14,
+    max: 13,
     greet: "Good afternoon",
-    focus: "Lets keep things moving. You got this.",
+    focus: "Pause, recharge, and enjoy a fresh perspective.",
   },
   {
-    min: 14,
+    min: 13,
+    max: 15,
+    greet: "Good afternoon",
+    focus: "Reset your focus. Take the next step.",
+  },
+  {
+    min: 15,
     max: 17,
-    greet: "Hope all is well",
-    focus: "Keeping the pace steady? You got this.",
+    greet: "Good afternoon",
+    focus: "Keep it steady. Make each step count.",
   },
   {
     min: 17,
-    max: 19,
-    greet: "Welcome back",
-    focus: "One more thing to finish? Lets get it done.",
+    max: 18,
+    greet: "Good late afternoon",
+    focus: "Bring your priorities to a comfortable close.",
   },
   {
-    min: 19,
-    max: 21,
+    min: 18,
+    max: 20,
     greet: "Good evening",
-    focus: "Evening focus time? Lets make it productive.",
+    focus: "A change of pace. Make time for yourself.",
   },
   {
-    min: 21,
+    min: 20,
+    max: 22,
+    greet: "Good evening",
+    focus: "Let things settle. Enjoy a quieter moment.",
+  },
+  {
+    min: 22,
     max: 24,
-    greet: "Still focused",
-    focus: "The world is quiet. Perfect time to focus.",
+    greet: "A late hello",
+    focus: "Wind down gently. Tomorrow is a fresh start.",
   },
 ];
 
@@ -413,14 +489,30 @@ const WMO_WEATHER = {
   51: { desc: "Light drizzle", sky: "precip", fall: "drizzle", n: 1 },
   53: { desc: "Drizzle", sky: "precip", fall: "drizzle", n: 2 },
   55: { desc: "Dense drizzle", sky: "precip", fall: "drizzle", n: 3 },
-  56: { desc: "Light freezing drizzle", sky: "precip", fall: "frz-drizzle", n: 1 },
-  57: { desc: "Dense freezing drizzle", sky: "precip", fall: "frz-drizzle", n: 2 },
+  56: {
+    desc: "Light freezing drizzle",
+    sky: "precip",
+    fall: "frz-drizzle",
+    n: 1,
+  },
+  57: {
+    desc: "Dense freezing drizzle",
+    sky: "precip",
+    fall: "frz-drizzle",
+    n: 2,
+  },
 
   61: { desc: "Light rain", sky: "precip", fall: "rain", n: 1 },
   63: { desc: "Rain", sky: "precip", fall: "rain", n: 2 },
   65: { desc: "Heavy rain", sky: "precip", fall: "rain", n: 3, dark: true },
   66: { desc: "Light freezing rain", sky: "precip", fall: "frz-rain", n: 1 },
-  67: { desc: "Heavy freezing rain", sky: "precip", fall: "frz-rain", n: 2, dark: true },
+  67: {
+    desc: "Heavy freezing rain",
+    sky: "precip",
+    fall: "frz-rain",
+    n: 2,
+    dark: true,
+  },
 
   71: { desc: "Light snow", sky: "precip", fall: "snow", n: 1 },
   73: { desc: "Snow", sky: "precip", fall: "snow", n: 2 },
@@ -429,23 +521,41 @@ const WMO_WEATHER = {
 
   80: { desc: "Light rain showers", sky: "shower", fall: "rain", n: 1 },
   81: { desc: "Rain showers", sky: "shower", fall: "rain", n: 2 },
-  82: { desc: "Violent rain showers", sky: "shower", fall: "rain", n: 3, dark: true },
+  82: {
+    desc: "Violent rain showers",
+    sky: "shower",
+    fall: "rain",
+    n: 3,
+    dark: true,
+  },
   85: { desc: "Light snow showers", sky: "shower", fall: "snow", n: 1 },
   86: { desc: "Heavy snow showers", sky: "shower", fall: "snow", n: 3 },
 
   95: { desc: "Thunderstorm", sky: "storm" },
   96: { desc: "Thunderstorm with hail", sky: "storm", fall: "hail", n: 1 },
-  99: { desc: "Thunderstorm with heavy hail", sky: "storm", fall: "hail", n: 2 },
+  99: {
+    desc: "Thunderstorm with heavy hail",
+    sky: "storm",
+    fall: "hail",
+    n: 2,
+  },
 
   // Not a WMO code: only the wttr.in fallback reports thunder + snow
-  1095: { desc: "Thunderstorm with snow", sky: "storm", fall: "storm-snow", n: 1 },
+  1095: {
+    desc: "Thunderstorm with snow",
+    sky: "storm",
+    fall: "storm-snow",
+    n: 1,
+  },
 };
 
 // Unknown code → closest known code below it (keeps the icon sensible)
 function getWeatherInfo(code) {
   code = Number(code);
   if (WMO_WEATHER[code]) return WMO_WEATHER[code];
-  const known = Object.keys(WMO_WEATHER).map(Number).filter((c) => c <= code);
+  const known = Object.keys(WMO_WEATHER)
+    .map(Number)
+    .filter((c) => c <= code);
   return WMO_WEATHER[known.length ? Math.max(...known) : 3];
 }
 
@@ -507,7 +617,8 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
     let rays = "";
     for (let i = 0; i < 8; i++) {
       const a = (i * Math.PI) / 4;
-      const c = Math.cos(a), s = Math.sin(a);
+      const c = Math.cos(a),
+        s = Math.sin(a);
       rays += `<line x1="${r1(cx + c * (r + 1.9))}" y1="${r1(cy + s * (r + 1.9))}" x2="${r1(cx + c * (r + 3.9))}" y2="${r1(cy + s * (r + 3.9))}"/>`;
     }
     return (
@@ -538,13 +649,15 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
     let s = "";
     for (let i = 0; i < 3; i++) {
       const a = (i * Math.PI) / 3 + Math.PI / 2;
-      const dx = Math.cos(a) * r, dy = Math.sin(a) * r;
+      const dx = Math.cos(a) * r,
+        dy = Math.sin(a) * r;
       s += `<line x1="${r1(x - dx)}" y1="${r1(y - dy)}" x2="${r1(x + dx)}" y2="${r1(y + dy)}"/>`;
     }
     return `<g stroke="${color}" stroke-width="${w}" stroke-linecap="round">${s}</g>`;
   };
 
-  const dot = (x, y, r, color) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
+  const dot = (x, y, r, color) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
 
   // Lightning bolt
   const bolt = () =>
@@ -553,49 +666,150 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
   // ── precipitation under a cloud whose bottom is y≈20 ──
   const fallLayer = (type, n, heavyColor) => {
     const rows = {
-      1: [[13, 22.5], [20, 22.5]],
-      2: [[10.5, 22.5], [16.5, 24.5], [22.5, 22.5]],
-      3: [[9, 22.5], [14, 24.5], [19, 22.5], [24, 24.5]],
+      1: [
+        [13, 22.5],
+        [20, 22.5],
+      ],
+      2: [
+        [10.5, 22.5],
+        [16.5, 24.5],
+        [22.5, 22.5],
+      ],
+      3: [
+        [9, 22.5],
+        [14, 24.5],
+        [19, 22.5],
+        [24, 24.5],
+      ],
     }[Math.min(3, Math.max(1, n))];
 
     switch (type) {
       case "rain": {
         const color = n >= 3 ? C.rainHeavy : C.rain;
         const len = n >= 3 ? 6 : n === 2 ? 5 : 4.2;
-        return rows.map(([x, y]) => streak(x, y, len, heavyColor || color, n >= 3 ? 1.9 : 1.7)).join("");
+        return rows
+          .map(([x, y]) =>
+            streak(x, y, len, heavyColor || color, n >= 3 ? 1.9 : 1.7),
+          )
+          .join("");
       }
       case "drizzle": {
         // two staggered rows of short dashes / dots
-        const pts = n === 1 ? [[12, 23], [20, 23], [16, 27.5]]
-          : n === 2 ? [[10, 23], [16, 23], [22, 23], [13, 27.5], [19, 27.5]]
-          : [[9, 23], [14, 23], [19, 23], [24, 23], [11.5, 27.5], [16.5, 27.5], [21.5, 27.5]];
+        const pts =
+          n === 1
+            ? [
+                [12, 23],
+                [20, 23],
+                [16, 27.5],
+              ]
+            : n === 2
+              ? [
+                  [10, 23],
+                  [16, 23],
+                  [22, 23],
+                  [13, 27.5],
+                  [19, 27.5],
+                ]
+              : [
+                  [9, 23],
+                  [14, 23],
+                  [19, 23],
+                  [24, 23],
+                  [11.5, 27.5],
+                  [16.5, 27.5],
+                  [21.5, 27.5],
+                ];
         return pts.map(([x, y]) => streak(x, y, 1.6, C.drizzle, 1.5)).join("");
       }
       case "frz-drizzle": {
-        const pts = n === 1 ? [[11, 23], [17, 23]] : [[9.5, 23], [15, 23], [20.5, 23]];
-        return pts.map(([x, y]) => streak(x, y, 1.6, C.ice, 1.5)).join("") +
-          flake(n === 1 ? 22.5 : 25, 27, 2.3, C.ice, 1.15) + dot(n === 1 ? 14 : 12.5, 28.3, 0.95, C.ice);
+        const pts =
+          n === 1
+            ? [
+                [11, 23],
+                [17, 23],
+              ]
+            : [
+                [9.5, 23],
+                [15, 23],
+                [20.5, 23],
+              ];
+        return (
+          pts.map(([x, y]) => streak(x, y, 1.6, C.ice, 1.5)).join("") +
+          flake(n === 1 ? 22.5 : 25, 27, 2.3, C.ice, 1.15) +
+          dot(n === 1 ? 14 : 12.5, 28.3, 0.95, C.ice)
+        );
       }
       case "frz-rain": {
-        const pts = n === 1 ? [[11, 22.5], [17, 22.5]] : [[9, 22.5], [14.5, 24], [20, 22.5]];
-        return pts.map(([x, y]) => streak(x, y, n === 1 ? 4.2 : 5.2, C.ice, 1.7)).join("") +
-          flake(n === 1 ? 23 : 25, 26.5, 2.4, C.ice, 1.15);
+        const pts =
+          n === 1
+            ? [
+                [11, 22.5],
+                [17, 22.5],
+              ]
+            : [
+                [9, 22.5],
+                [14.5, 24],
+                [20, 22.5],
+              ];
+        return (
+          pts
+            .map(([x, y]) => streak(x, y, n === 1 ? 4.2 : 5.2, C.ice, 1.7))
+            .join("") + flake(n === 1 ? 23 : 25, 26.5, 2.4, C.ice, 1.15)
+        );
       }
       case "snow": {
-        const pts = n === 1 ? [[12.5, 24.5], [20.5, 26.5]]
-          : n === 2 ? [[10, 24.5], [16.5, 27.5], [23, 24.5]]
-          : [[8.5, 24.5], [14, 27.8], [19.5, 24.5], [25, 27.8]];
+        const pts =
+          n === 1
+            ? [
+                [12.5, 24.5],
+                [20.5, 26.5],
+              ]
+            : n === 2
+              ? [
+                  [10, 24.5],
+                  [16.5, 27.5],
+                  [23, 24.5],
+                ]
+              : [
+                  [8.5, 24.5],
+                  [14, 27.8],
+                  [19.5, 24.5],
+                  [25, 27.8],
+                ];
         return pts.map(([x, y]) => flake(x, y, n >= 3 ? 2.3 : 2.6)).join("");
       }
       case "grains": {
-        const pts = [[10, 23.5], [15, 25], [20, 23.5], [24, 25.5], [12.5, 28], [18, 28.5]];
+        const pts = [
+          [10, 23.5],
+          [15, 25],
+          [20, 23.5],
+          [24, 25.5],
+          [12.5, 28],
+          [18, 28.5],
+        ];
         return pts.map(([x, y]) => dot(x, y, 1, C.snow)).join("");
       }
       case "storm-snow": // flakes either side of the lightning bolt
         return flake(9, 25.5, 2.5) + flake(24, 26.5, 2.5);
       case "hail": {
-        const pts = n === 1 ? [[10, 25.5], [23.5, 26.5]] : [[9, 24.5], [24, 24.5], [10.5, 29], [23, 29.5]];
-        return pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.7" fill="${C.hail}" stroke="${C.hailEdge}" stroke-width="0.7"/>`).join("");
+        const pts =
+          n === 1
+            ? [
+                [10, 25.5],
+                [23.5, 26.5],
+              ]
+            : [
+                [9, 24.5],
+                [24, 24.5],
+                [10.5, 29],
+                [23, 29.5],
+              ];
+        return pts
+          .map(
+            ([x, y]) =>
+              `<circle cx="${x}" cy="${y}" r="1.7" fill="${C.hail}" stroke="${C.hailEdge}" stroke-width="0.7"/>`,
+          )
+          .join("");
       }
       default:
         return "";
@@ -611,18 +825,25 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
   switch (info.sky) {
     case "clear":
       body = isNight
-        ? moon(17, 16, 19) + star(6.5, 8, 2, 0.95) + star(9.5, 15.5, 1.3, 0.7) + star(26.5, 27, 1.2, 0.55)
+        ? moon(17, 16, 19) +
+          star(6.5, 8, 2, 0.95) +
+          star(9.5, 15.5, 1.3, 0.7) +
+          star(26.5, 27, 1.2, 0.55)
         : sun(16, 16, 6.8);
       break;
 
     case "few": // sun/moon in front, a small cloud tucked bottom-right
-      body = (isNight ? moon(14, 13, 15) + star(26, 7, 1.5, 0.85) : sun(13.5, 13, 5.6)) +
-        cloud(21, 27, 0.62, cl);
+      body =
+        (isNight
+          ? moon(14, 13, 15) + star(26, 7, 1.5, 0.85)
+          : sun(13.5, 13, 5.6)) + cloud(21, 27, 0.62, cl);
       break;
 
     case "partly": // sun/moon peeks out top-left behind a big cloud
-      body = (isNight ? moon(11.5, 10.5, 13) + star(26, 5.5, 1.4, 0.8) : sun(11.5, 11, 4.6)) +
-        cloud(18, 27, 0.95, cl);
+      body =
+        (isNight
+          ? moon(11.5, 10.5, 13) + star(26, 5.5, 1.4, 0.8)
+          : sun(11.5, 11, 4.6)) + cloud(18, 27, 0.95, cl);
       break;
 
     case "overcast": // two layered clouds
@@ -639,15 +860,21 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
       break;
 
     case "precip":
-      body = cloud(16, 20, 1.08, info.dark ? clDark : cl) + fallLayer(info.fall, info.n);
+      body =
+        cloud(16, 20, 1.08, info.dark ? clDark : cl) +
+        fallLayer(info.fall, info.n);
       break;
 
     case "shower": // sun/moon behind cloud + precipitation = showers
-      body = sky(23, 7.5, 3.5) + cloud(14.5, 20, 1.02, info.dark ? clDark : cl) + fallLayer(info.fall, info.n);
+      body =
+        sky(23, 7.5, 3.5) +
+        cloud(14.5, 20, 1.02, info.dark ? clDark : cl) +
+        fallLayer(info.fall, info.n);
       break;
 
     case "storm":
-      body = cloud(16, 19.5, 1.08, clDark) + bolt() + fallLayer(info.fall, info.n);
+      body =
+        cloud(16, 19.5, 1.08, clDark) + bolt() + fallLayer(info.fall, info.n);
       break;
 
     default:
@@ -661,17 +888,54 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
 // wttr.in returns WorldWeatherOnline codes; map them to WMO so the
 // same icons + descriptions are used no matter which API answered.
 const WWO_TO_WMO = {
-  113: 0, 116: 2, 119: 3, 122: 3,
-  143: 45, 248: 45, 260: 48,
-  176: 80, 263: 51, 266: 53, 281: 56, 284: 57, 185: 56,
-  293: 61, 296: 61, 299: 63, 302: 63, 305: 65, 308: 65,
-  311: 66, 314: 67, 317: 66, 320: 67, 350: 67, 182: 66,
-  179: 85, 227: 73, 230: 75,
-  323: 71, 326: 71, 329: 73, 332: 73, 335: 75, 338: 75,
-  353: 80, 356: 81, 359: 82,
-  362: 66, 365: 67, 374: 66, 377: 67,
-  368: 85, 371: 86,
-  200: 95, 386: 95, 389: 95, 392: 1095, 395: 1095,
+  113: 0,
+  116: 2,
+  119: 3,
+  122: 3,
+  143: 45,
+  248: 45,
+  260: 48,
+  176: 80,
+  263: 51,
+  266: 53,
+  281: 56,
+  284: 57,
+  185: 56,
+  293: 61,
+  296: 61,
+  299: 63,
+  302: 63,
+  305: 65,
+  308: 65,
+  311: 66,
+  314: 67,
+  317: 66,
+  320: 67,
+  350: 67,
+  182: 66,
+  179: 85,
+  227: 73,
+  230: 75,
+  323: 71,
+  326: 71,
+  329: 73,
+  332: 73,
+  335: 75,
+  338: 75,
+  353: 80,
+  356: 81,
+  359: 82,
+  362: 66,
+  365: 67,
+  374: 66,
+  377: 67,
+  368: 85,
+  371: 86,
+  200: 95,
+  386: 95,
+  389: 95,
+  392: 1095,
+  395: 1095,
 };
 
 // "06:42 AM" → minutes after midnight
@@ -700,7 +964,7 @@ function getWeather() {
   // ── reverse geocode ────────────────────────────────────────
   function getCity(lat, lon) {
     return fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
     )
       .then((r) => r.json())
       .then((data) => {
@@ -719,7 +983,7 @@ function getWeather() {
     // PRIMARY: Open-Meteo
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`,
       );
       if (!res.ok) {
         throw new Error(`Open-Meteo failed: ${res.status}`);
@@ -748,12 +1012,16 @@ function getWeather() {
         const desc = (current.weatherDesc?.[0]?.value || "").toLowerCase();
         if (desc.includes("thunder")) weathercode = 95;
         else if (desc.includes("snow")) weathercode = 73;
-        else if (desc.includes("sleet") || desc.includes("freezing")) weathercode = 66;
+        else if (desc.includes("sleet") || desc.includes("freezing"))
+          weathercode = 66;
         else if (desc.includes("drizzle")) weathercode = 53;
-        else if (desc.includes("rain") || desc.includes("shower")) weathercode = 63;
-        else if (desc.includes("fog") || desc.includes("mist")) weathercode = 45;
+        else if (desc.includes("rain") || desc.includes("shower"))
+          weathercode = 63;
+        else if (desc.includes("fog") || desc.includes("mist"))
+          weathercode = 45;
         else if (desc.includes("partly")) weathercode = 2;
-        else if (desc.includes("clear") || desc.includes("sunny")) weathercode = 0;
+        else if (desc.includes("clear") || desc.includes("sunny"))
+          weathercode = 0;
         else weathercode = 3;
       }
 
@@ -762,11 +1030,19 @@ function getWeather() {
       const astro = data.weather?.[0]?.astronomy?.[0];
       const rise = parseClock12(astro?.sunrise);
       const set = parseClock12(astro?.sunset);
-      const localNow = parseClock12(current.localObsDateTime?.split(" ").slice(1).join(" "));
-      const now = localNow ?? new Date().getHours() * 60 + new Date().getMinutes();
-      const is_day = rise !== null && set !== null
-        ? (now >= rise && now < set ? 1 : 0)
-        : (new Date().getHours() >= 6 && new Date().getHours() < 20 ? 1 : 0);
+      const localNow = parseClock12(
+        current.localObsDateTime?.split(" ").slice(1).join(" "),
+      );
+      const now =
+        localNow ?? new Date().getHours() * 60 + new Date().getMinutes();
+      const is_day =
+        rise !== null && set !== null
+          ? now >= rise && now < set
+            ? 1
+            : 0
+          : new Date().getHours() >= 6 && new Date().getHours() < 20
+            ? 1
+            : 0;
 
       return {
         temperature: parseFloat(current.temp_C),
@@ -792,7 +1068,8 @@ function getWeather() {
         }
 
         // city fallback
-        const city = cityRes.status === "fulfilled" ? cityRes.value : "Unknown location";
+        const city =
+          cityRes.status === "fulfilled" ? cityRes.value : "Unknown location";
         const { temperature, weathercode, is_day } = weatherRes.value;
         const night = Number(is_day) !== 1;
         const desc = getWeatherInfo(weathercode).desc;
@@ -821,13 +1098,12 @@ function getWeather() {
     navigator.geolocation.getCurrentPosition(
       (pos) => fetchAndRender(pos.coords.latitude, pos.coords.longitude),
       () => fetchAndRender(DEF_LAT, DEF_LON), // denied / error
-      { enableHighAccuracy: false, timeout: 6000 } // quick, low-power
+      { enableHighAccuracy: false, timeout: 6000 }, // quick, low-power
     );
   } else {
     fetchAndRender(DEF_LAT, DEF_LON); // no API
   }
 }
-
 
 /* ══ 09. SIDEBAR ══════════════════════════════════════════════ */
 function isThemeEditorOpen() {
@@ -876,7 +1152,8 @@ function getCustomTheme(id) {
 
 function saveCustomThemes() {
   writeJSON("gx_custom_themes", state.customThemes);
-  if (state.customActive) localStorage.setItem("gx_custom_active", state.customActive);
+  if (state.customActive)
+    localStorage.setItem("gx_custom_active", state.customActive);
   else localStorage.removeItem("gx_custom_active");
 }
 
@@ -901,7 +1178,11 @@ function clearThemeVars() {
 }
 
 function getPrimaryHex() {
-  return getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#3b82f6";
+  return (
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--primary")
+      .trim() || "#3b82f6"
+  );
 }
 
 // Keep daisyUI parts (toggles, checkboxes) in the same accent color
@@ -915,7 +1196,8 @@ function syncDaisyPrimary() {
 
 // Colors the live scene uses: custom theme slots, or derived from the accent
 function getScenePalette() {
-  const custom = state.theme === "custom" ? getCustomTheme(state.customActive) : null;
+  const custom =
+    state.theme === "custom" ? getCustomTheme(state.customActive) : null;
   if (custom) return [custom.a, custom.b, custom.c];
   const p = getPrimaryHex();
   return [p, LuminusColor.rotateHue(p, 45), LuminusColor.rotateHue(p, -60)];
@@ -945,7 +1227,9 @@ function applyTheme(theme) {
   document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.themeBtn === theme);
   });
-  document.getElementById("custom-theme-btn")?.classList.toggle("active", theme === "custom");
+  document
+    .getElementById("custom-theme-btn")
+    ?.classList.toggle("active", theme === "custom");
 
   renderCustomThemeList();
   window.LiveScene?.setPalette(getScenePalette());
@@ -962,7 +1246,8 @@ function deleteCustomTheme(id) {
   state.customThemes = state.customThemes.filter((t) => t.id !== id);
   if (state.customActive === id) {
     state.customActive = state.customThemes[0]?.id || null;
-    if (state.theme === "custom" && !state.customActive) state.theme = DEFAULT_THEME;
+    if (state.theme === "custom" && !state.customActive)
+      state.theme = DEFAULT_THEME;
   }
   saveCustomThemes();
   setTheme(state.theme);
@@ -1012,7 +1297,10 @@ function createColorWheel({ wheel, knob, shade, value, hex, onChange }) {
     if (shade) shade.style.opacity = String(1 - v);
     if (value) {
       value.value = String(v);
-      value.style.setProperty("--cw-hue", LuminusColor.rgbToHex(LuminusColor.hsvToRgb(h, s, 1)));
+      value.style.setProperty(
+        "--cw-hue",
+        LuminusColor.rgbToHex(LuminusColor.hsvToRgb(h, s, 1)),
+      );
     }
     if (hex && document.activeElement !== hex) hex.value = current;
   };
@@ -1074,7 +1362,12 @@ function createColorWheel({ wheel, knob, shade, value, hex, onChange }) {
 }
 
 /* ══ 12. CUSTOM THEME EDITOR ══════════════════════════════════ */
-const SLOT_LABELS = { primary: "Accent", a: "Scene 1", b: "Scene 2", c: "Scene 3" };
+const SLOT_LABELS = {
+  primary: "Accent",
+  a: "Scene 1",
+  b: "Scene 2",
+  c: "Scene 3",
+};
 
 const themeEditor = {
   draft: null, // { id, name, primary, a, b, c }
@@ -1127,7 +1420,12 @@ function initThemeEditor() {
       const btn = e.target.closest("[data-preset]");
       if (!btn) return;
       const p = CUSTOM_THEME_PRESETS[Number(btn.dataset.preset)];
-      Object.assign(themeEditor.draft, { primary: p.primary, a: p.a, b: p.b, c: p.c });
+      Object.assign(themeEditor.draft, {
+        primary: p.primary,
+        a: p.a,
+        b: p.b,
+        c: p.c,
+      });
       const nameInput = document.getElementById("cw-name");
       if (themeEditor.isNew && nameInput) {
         themeEditor.draft.name = p.name;
@@ -1139,8 +1437,12 @@ function initThemeEditor() {
   }
 
   // Save / cancel
-  document.getElementById("cw-save")?.addEventListener("click", saveThemeEditor);
-  document.getElementById("cw-cancel")?.addEventListener("click", () => dialog.close());
+  document
+    .getElementById("cw-save")
+    ?.addEventListener("click", saveThemeEditor);
+  document
+    .getElementById("cw-cancel")
+    ?.addEventListener("click", () => dialog.close());
   // Any close without saving (Esc, backdrop, cancel) → restore the real theme
   dialog.addEventListener("close", () => {
     if (!themeEditor.saved) applyTheme(state.theme);
@@ -1170,7 +1472,8 @@ function openThemeEditor(id = null) {
   const nameInput = document.getElementById("cw-name");
   if (nameInput) nameInput.value = themeEditor.draft.name;
 
-  const full = themeEditor.isNew && state.customThemes.length >= MAX_CUSTOM_THEMES;
+  const full =
+    themeEditor.isNew && state.customThemes.length >= MAX_CUSTOM_THEMES;
   const saveBtn = document.getElementById("cw-save");
   const note = document.getElementById("cw-limit-note");
   if (saveBtn) saveBtn.disabled = full;
@@ -1223,7 +1526,8 @@ function saveThemeEditor() {
   d.name = (d.name || "").trim() || "Custom";
   const idx = state.customThemes.findIndex((t) => t.id === d.id);
   if (idx >= 0) state.customThemes[idx] = { ...d };
-  else if (state.customThemes.length < MAX_CUSTOM_THEMES) state.customThemes.push({ ...d });
+  else if (state.customThemes.length < MAX_CUSTOM_THEMES)
+    state.customThemes.push({ ...d });
   else return;
   state.customActive = d.id;
   themeEditor.saved = true;
@@ -1254,9 +1558,14 @@ function updateSceneUI() {
   const cfg = state.scene;
   const enabled = document.getElementById("scene-enabled");
   if (enabled) enabled.checked = cfg.enabled;
-  document.getElementById("scene-options")?.classList.toggle("is-off", !cfg.enabled);
+  document
+    .getElementById("scene-options")
+    ?.classList.toggle("is-off", !cfg.enabled);
   document.querySelectorAll("[data-scene]").forEach((btn) => {
-    btn.classList.toggle("active", cfg.enabled && btn.dataset.scene === cfg.scene);
+    btn.classList.toggle(
+      "active",
+      cfg.enabled && btn.dataset.scene === cfg.scene,
+    );
   });
   [
     ["scene-cursor", "cursor"],
@@ -1280,7 +1589,8 @@ function updateScene(partial) {
 function initLiveScene() {
   const canvas = document.getElementById("live-scene");
   if (!canvas || !window.LiveScene) return;
-  if (!LiveScene.SCENES.includes(state.scene.scene)) state.scene.scene = SCENE_DEFAULTS.scene;
+  if (!LiveScene.SCENES.includes(state.scene.scene))
+    state.scene.scene = SCENE_DEFAULTS.scene;
   LiveScene.init(canvas);
 
   // Scene cards
@@ -1317,8 +1627,18 @@ function initLiveScene() {
       updateScene({ [key]: val });
     });
   };
-  bindSlider("scene-intensity", "intensity", "scene-intensity-value", (v) => `${Math.round(v * 100)}%`);
-  bindSlider("scene-speed", "speed", "scene-speed-value", (v) => `${v.toFixed(1)}×`);
+  bindSlider(
+    "scene-intensity",
+    "intensity",
+    "scene-intensity-value",
+    (v) => `${Math.round(v * 100)}%`,
+  );
+  bindSlider(
+    "scene-speed",
+    "speed",
+    "scene-speed-value",
+    (v) => `${v.toFixed(1)}×`,
+  );
 
   LiveScene.setPalette(getScenePalette());
   LiveScene.configure(state.scene);
@@ -1397,8 +1717,12 @@ function setupEventDelegation() {
       toggleTask(index);
     }
   };
-  document.getElementById("task-list")?.addEventListener("click", handleTaskListClick);
-  document.getElementById("task-list-mobile")?.addEventListener("click", handleTaskListClick);
+  document
+    .getElementById("task-list")
+    ?.addEventListener("click", handleTaskListClick);
+  document
+    .getElementById("task-list-mobile")
+    ?.addEventListener("click", handleTaskListClick);
 
   // Favicon failed to load → dim it (replaces inline onerror, which extensions block)
   document.getElementById("bookmarks-grid")?.addEventListener(
@@ -1525,14 +1849,17 @@ function showModal({ title, inputs, confirmText, focusId, onConfirm }) {
 }
 
 function shakeInput() {
-  document.getElementById("modal-inputs")?.querySelectorAll(":scope > input").forEach((inp) => {
-    inp.style.borderColor = "rgba(244,63,94,0.7)";
-    inp.style.animation = "shake 0.3s ease";
-    setTimeout(() => {
-      inp.style.borderColor = "";
-      inp.style.animation = "";
-    }, 600);
-  });
+  document
+    .getElementById("modal-inputs")
+    ?.querySelectorAll(":scope > input")
+    .forEach((inp) => {
+      inp.style.borderColor = "rgba(244,63,94,0.7)";
+      inp.style.animation = "shake 0.3s ease";
+      setTimeout(() => {
+        inp.style.borderColor = "";
+        inp.style.animation = "";
+      }, 600);
+    });
 }
 
 // Accepts "example.com" or "https://example.com" → URL or null
@@ -1556,7 +1883,8 @@ const taskInput = (text = "") =>
 // Priority color picker shown under the task text
 function taskColorPickerHtml() {
   const swatches = TASK_COLORS.map(
-    (c) => `<button type="button" class="tcp-swatch" data-color="${c.color}" title="${c.name}" style="--sw:${c.color}"></button>`,
+    (c) =>
+      `<button type="button" class="tcp-swatch" data-color="${c.color}" title="${c.name}" style="--sw:${c.color}"></button>`,
   ).join("");
   return `
   <div class="tcp">
@@ -1591,16 +1919,22 @@ function initTaskColorPicker(initial) {
   const customBtn = wrap?.querySelector("[data-custom]");
   if (!wrap) return () => picked;
 
-  const preset = (hex) => TASK_COLORS.find((c) => c.color.toLowerCase() === String(hex).toLowerCase());
+  const preset = (hex) =>
+    TASK_COLORS.find(
+      (c) => c.color.toLowerCase() === String(hex).toLowerCase(),
+    );
 
   const refresh = () => {
     const known = picked ? preset(picked) : null;
     wrap.querySelectorAll(".tcp-swatch").forEach((b) => {
       const isCustom = b.hasAttribute("data-custom");
-      const active = isCustom ? !!picked && !known : (b.dataset.color || null) === (known ? known.color : picked);
+      const active = isCustom
+        ? !!picked && !known
+        : (b.dataset.color || null) === (known ? known.color : picked);
       b.classList.toggle("active", active);
     });
-    if (customBtn) customBtn.style.setProperty("--sw", picked && !known ? picked : "");
+    if (customBtn)
+      customBtn.style.setProperty("--sw", picked && !known ? picked : "");
     if (nameEl) {
       nameEl.textContent = !picked ? "None" : known ? known.name : "Custom";
       nameEl.style.color = picked || "";
@@ -1657,13 +1991,21 @@ function openLinkModal() {
       const url = parseUrlInput(raw);
       if (!url) return shakeInput();
       const { hostname } = url;
-      if (!hostname.includes(".") || hostname.length <= 3 || hostname.startsWith(".") || hostname.endsWith(".")) {
+      if (
+        !hostname.includes(".") ||
+        hostname.length <= 3 ||
+        hostname.startsWith(".") ||
+        hostname.endsWith(".")
+      ) {
         return shakeInput();
       }
       const normalizedNew = url.href.replace(/\/$/, "");
       const exists = state.bookmarks.some((b) => {
-        try { return new URL(b.url).href.replace(/\/$/, "") === normalizedNew; }
-        catch { return false; }
+        try {
+          return new URL(b.url).href.replace(/\/$/, "") === normalizedNew;
+        } catch {
+          return false;
+        }
       });
       if (exists) return shakeInput();
       state.bookmarks.push({ name, url: url.href });
@@ -1883,7 +2225,9 @@ function moveTask(from, to) {
   saveTasks();
   renderTasks();
   // little flash so you can see where it landed
-  document.querySelectorAll(`.task-item[data-index="${to}"]`).forEach((el) => el.classList.add("just-moved"));
+  document
+    .querySelectorAll(`.task-item[data-index="${to}"]`)
+    .forEach((el) => el.classList.add("just-moved"));
 }
 
 function beginTaskDrag(list, item, clientY) {
@@ -1921,8 +2265,10 @@ function taskDragTick() {
   // edge zone scales with the list, so tiny phone lists don't scroll too eagerly
   const edge = Math.min(28, box.height * 0.15);
   const speed = (dist) => Math.min(8, Math.ceil(dist / 5));
-  if (d.lastY < box.top + edge) d.list.scrollTop -= speed(box.top + edge - d.lastY);
-  else if (d.lastY > box.bottom - edge) d.list.scrollTop += speed(d.lastY - (box.bottom - edge));
+  if (d.lastY < box.top + edge)
+    d.list.scrollTop -= speed(box.top + edge - d.lastY);
+  else if (d.lastY > box.bottom - edge)
+    d.list.scrollTop += speed(d.lastY - (box.bottom - edge));
   layoutTaskDrag();
   d.raf = requestAnimationFrame(taskDragTick);
 }
@@ -1937,11 +2283,17 @@ function layoutTaskDrag() {
   const center = r.top + r.height / 2 + offset;
   let to = d.from;
   for (let i = 0; i < d.from; i++) {
-    if (center < d.rects[i].top + d.rects[i].height / 2) { to = i; break; }
+    if (center < d.rects[i].top + d.rects[i].height / 2) {
+      to = i;
+      break;
+    }
   }
   if (to === d.from) {
     for (let i = d.items.length - 1; i > d.from; i--) {
-      if (center > d.rects[i].top + d.rects[i].height / 2) { to = i; break; }
+      if (center > d.rects[i].top + d.rects[i].height / 2) {
+        to = i;
+        break;
+      }
     }
   }
   d.to = to;
@@ -1983,7 +2335,9 @@ function initTaskDrag() {
       e.preventDefault();
       if (!beginTaskDrag(list, handle.closest(".task-item"), e.clientY)) return;
       handle.setPointerCapture(e.pointerId);
-      const move = (ev) => { if (taskDrag) taskDrag.lastY = ev.clientY; };
+      const move = (ev) => {
+        if (taskDrag) taskDrag.lastY = ev.clientY;
+      };
       const up = (ev) => {
         handle.removeEventListener("pointermove", move);
         handle.removeEventListener("pointerup", up);
@@ -2002,34 +2356,46 @@ function initTaskDrag() {
       press = null;
     };
 
-    list.addEventListener("touchstart", (e) => {
-      if (taskDrag || e.touches.length !== 1) return cancelPress();
-      const item = e.target.closest(".task-item");
-      if (!item || e.target.closest("button, input")) return; // buttons & checkbox keep their tap
-      const t = e.touches[0];
-      press = {
-        x: t.clientX,
-        y: t.clientY,
-        item,
-        timer: setTimeout(() => {
-          if (press) beginTaskDrag(list, press.item, press.y);
-          press = null;
-        }, TASK_LONG_PRESS_MS),
-      };
-    }, { passive: true });
+    list.addEventListener(
+      "touchstart",
+      (e) => {
+        if (taskDrag || e.touches.length !== 1) return cancelPress();
+        const item = e.target.closest(".task-item");
+        if (!item || e.target.closest("button, input")) return; // buttons & checkbox keep their tap
+        const t = e.touches[0];
+        press = {
+          x: t.clientX,
+          y: t.clientY,
+          item,
+          timer: setTimeout(() => {
+            if (press) beginTaskDrag(list, press.item, press.y);
+            press = null;
+          }, TASK_LONG_PRESS_MS),
+        };
+      },
+      { passive: true },
+    );
 
     // Not passive: once dragging, we stop the page/list from scrolling
-    list.addEventListener("touchmove", (e) => {
-      const t = e.touches[0];
-      if (taskDrag && taskDrag.list === list) {
-        e.preventDefault();
-        taskDrag.lastY = t.clientY;
-        return;
-      }
-      if (press && Math.hypot(t.clientX - press.x, t.clientY - press.y) > TASK_MOVE_CANCEL_PX) {
-        cancelPress(); // finger moved early → it's a scroll, not a drag
-      }
-    }, { passive: false });
+    list.addEventListener(
+      "touchmove",
+      (e) => {
+        const t = e.touches[0];
+        if (taskDrag && taskDrag.list === list) {
+          e.preventDefault();
+          taskDrag.lastY = t.clientY;
+          return;
+        }
+        if (
+          press &&
+          Math.hypot(t.clientX - press.x, t.clientY - press.y) >
+            TASK_MOVE_CANCEL_PX
+        ) {
+          cancelPress(); // finger moved early → it's a scroll, not a drag
+        }
+      },
+      { passive: false },
+    );
 
     const touchEnd = (e) => {
       cancelPress();
@@ -2091,9 +2457,11 @@ function initTaskLogCollapse() {
 /* ══ 20. BACKGROUND / WALLPAPER ═══════════════════════════════ */
 function isVideoUrl(url) {
   if (typeof url !== "string") return false;
-  return url.includes("/video/upload/") ||
+  return (
+    url.includes("/video/upload/") ||
     url.startsWith("data:video") ||
-    /\.(mp4|webm|mov)$/i.test(url);
+    /\.(mp4|webm|mov)$/i.test(url)
+  );
 }
 
 // Small static poster for Cloudinary videos (used for thumbnails)
@@ -2143,7 +2511,9 @@ function setupBg() {
       const isVideo = file.type.startsWith("video/");
       const MAX_SIZE_MB = isVideo ? 15 : 4;
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        alert(`File is too large! Please choose a file smaller than ${MAX_SIZE_MB}MB.`);
+        alert(
+          `File is too large! Please choose a file smaller than ${MAX_SIZE_MB}MB.`,
+        );
         e.target.value = "";
         return;
       }
@@ -2163,7 +2533,10 @@ function setupBg() {
         try {
           localStorage.setItem("gx_bg", dataUrl);
         } catch (err) {
-          console.warn("Background too large for localStorage storage capacity.", err);
+          console.warn(
+            "Background too large for localStorage storage capacity.",
+            err,
+          );
         }
         state.hasBg = true;
       };
@@ -2276,7 +2649,9 @@ function renderWallpaperButtons() {
   grid.innerHTML = PRESET_WALLPAPERS.map((wp) => {
     const isVideo = isVideoUrl(wp.value);
     // Grid thumbnails are small, so keep this poster tight and cheap
-    const previewSrc = isVideo ? getVideoPosterUrl(wp.value, { width: 300, quality: 25 }) : wp.value;
+    const previewSrc = isVideo
+      ? getVideoPosterUrl(wp.value, { width: 300, quality: 25 })
+      : wp.value;
     return `
       <button
         data-preset-bg="${wp.id}"
@@ -2302,7 +2677,9 @@ function renderWallpaperButtons() {
 function applyWallpaperEffects() {
   const rootStyle = document.documentElement.style;
   const blur = Number.isFinite(wallpaperFX.blur) ? wallpaperFX.blur : 0;
-  const brightness = Number.isFinite(wallpaperFX.brightness) ? wallpaperFX.brightness : 1;
+  const brightness = Number.isFinite(wallpaperFX.brightness)
+    ? wallpaperFX.brightness
+    : 1;
   rootStyle.setProperty("--bg-blur", `${blur}px`);
   rootStyle.setProperty("--bg-brightness", brightness);
   rootStyle.setProperty("--bg-vignette", wallpaperFX.vignette);
@@ -2349,15 +2726,22 @@ function initOfflineToast() {
     toast.classList.remove("toast-show");
   }
 
-  document.getElementById("offline-toast-close")
-    ?.addEventListener("click", () => {
+  document.getElementById("offline-toast-close")?.addEventListener(
+    "click",
+    () => {
       dismissed = true;
       hide();
-    }, { passive: true });
-  window.addEventListener("offline", () => {
-    dismissed = false;
-    show();
-  }, { passive: true });
+    },
+    { passive: true },
+  );
+  window.addEventListener(
+    "offline",
+    () => {
+      dismissed = false;
+      show();
+    },
+    { passive: true },
+  );
   window.addEventListener("online", hide, { passive: true });
   if (!navigator.onLine) show();
 }
