@@ -1399,3 +1399,209 @@ video {
     width: 24rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITIES MISSING FROM THE OLD BUILD — written exactly the way
+   Tailwind v3.4 + daisyUI 4.12 output them. Running
+   `npm run build:css` regenerates this whole file, so it is safe
+   to replace.
+═══════════════════════════════════════════════════════════ */
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-5 {
+  margin-top: 1.25rem;
+}
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+.h-\[34px\] {
+  height: 34px;
+}
+.w-\[34px\] {
+  width: 34px;
+}
+.min-w-0 {
+  min-width: 0px;
+}
+.min-w-\[5\.5rem\] {
+  min-width: 5.5rem;
+}
+.min-w-\[8\.5rem\] {
+  min-width: 8.5rem;
+}
+.max-w-2xl {
+  max-width: 42rem;
+}
+.max-w-md {
+  max-width: 28rem;
+}
+.max-w-\[110px\] {
+  max-width: 110px;
+}
+.max-w-\[160px\] {
+  max-width: 160px;
+}
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+.shrink-0 {
+  flex-shrink: 0;
+}
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.justify-end {
+  justify-content: flex-end;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rounded-\[10px\] {
+  border-radius: 10px;
+}
+.border-white\/20 {
+  border-color: rgb(255 255 255 / 0.2);
+}
+.bg-black\/0 {
+  background-color: rgb(0 0 0 / 0);
+}
+.bg-primary\/80 {
+  background-color: var(--fallback-p, oklch(var(--p) / 0.8));
+}
+.bg-red-500\/10 {
+  background-color: rgb(239 68 68 / 0.1);
+}
+.bg-white\/\[0\.02\] {
+  background-color: rgb(255 255 255 / 0.02);
+}
+.object-cover {
+  -o-object-fit: cover;
+  object-fit: cover;
+}
+.text-end {
+  text-align: end;
+}
+.font-mono {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+.text-\[11px\] {
+  font-size: 11px;
+}
+.text-\[12px\] {
+  font-size: 12px;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.leading-snug {
+  line-height: 1.375;
+}
+.tracking-\[0\.1em\] {
+  letter-spacing: 0.1em;
+}
+.tracking-\[0\.2em\] {
+  letter-spacing: 0.2em;
+}
+.line-through {
+  text-decoration-line: line-through;
+}
+.accent-primary {
+  accent-color: var(--fallback-p, oklch(var(--p) / 1));
+}
+.opacity-65 {
+  opacity: 0.65;
+}
+.opacity-70 {
+  opacity: 0.7;
+}
+.opacity-75 {
+  opacity: 0.75;
+}
+.shadow-xl {
+  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored:
+    0 20px 25px -5px var(--tw-shadow-color),
+    0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+}
+.duration-150 {
+  transition-duration: 150ms;
+}
+.ease-out {
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+.\!text-\[10px\] {
+  font-size: 10px !important;
+}
+.\!tracking-wider {
+  letter-spacing: 0.05em !important;
+}
+.hover\:scale-\[1\.02\]:hover {
+  --tw-scale-x: 1.02;
+  --tw-scale-y: 1.02;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.hover\:bg-primary:hover {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-p, oklch(var(--p) / var(--tw-bg-opacity)));
+}
+.hover\:bg-red-500\/20:hover {
+  background-color: rgb(239 68 68 / 0.2);
+}
+.hover\:shadow-2xl:hover {
+  --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+}
+.focus\:border-primary:focus {
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-p, oklch(var(--p) / var(--tw-border-opacity)));
+}
+.focus\:outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.active\:scale-95:active {
+  --tw-scale-x: 0.95;
+  --tw-scale-y: 0.95;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.group:focus-within .group-focus-within\:opacity-30 {
+  opacity: 0.3;
+}
+.group:hover .group-hover\:scale-110 {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+    rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.group:hover .group-hover\:bg-black\/40 {
+  background-color: rgb(0 0 0 / 0.4);
+}

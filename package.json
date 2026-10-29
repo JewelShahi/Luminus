@@ -1,14 +1,10 @@
 {
-  "name": "chrome-ext",
-  "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
+  "name": "luminus",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:css": "tailwindcss -i ./tailwind.input.css -o ./tailwindcss.css",
+    "watch:css": "tailwindcss -i ./tailwind.input.css -o ./tailwindcss.css --watch"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.5.0",
     "daisyui": "^4.12.24",

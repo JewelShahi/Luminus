@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="tailwindcss.css" />
     <link
-      href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css"
+      href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css"
       rel="stylesheet"
     />
     <link
@@ -28,6 +28,14 @@
       id="base-overlay"
       class="fixed inset-0 z-[1] bg-[#07070a] pointer-events-none"
     ></div>
+
+    <!-- ── LIVE ANIMATED SCENE (aurora / ink / stars / lava) ── -->
+    <canvas
+      id="live-scene"
+      class="fixed inset-0 z-[1] pointer-events-none opacity-0"
+      aria-hidden="true"
+    ></canvas>
+
 
     <div
       id="theme-overlay"
@@ -392,13 +400,114 @@
               <span class="theme-dot" style="background: #fb923c"></span>Inferno
             </button>
 
-            <button class="theme-btn" data-theme-btn="black">
-              <span
-                class="theme-dot"
-                style="background: rgba(255, 255, 255, 0.6)"
-              ></span
-              >Obsidian
+            <button id="custom-theme-btn" class="theme-btn" type="button">
+              <span class="theme-dot theme-dot--custom"></span>Custom
             </button>
+          </div>
+          <!-- saved custom themes (rendered by script.js) -->
+          <div id="custom-theme-list" class="flex flex-wrap gap-2 mt-3"></div>
+        </section>
+
+        <!-- ── LIVE SCENE ─────────────────────────────────────── -->
+        <section>
+          <h3 class="sidebar-label">Live Scene</h3>
+          <label class="toggle-row mb-3">
+            <span>Animated background</span>
+            <input
+              type="checkbox"
+              id="scene-enabled"
+              class="toggle toggle-primary toggle-xs"
+            />
+          </label>
+          <div id="scene-options" class="space-y-3">
+            <div id="scene-grid" class="grid grid-cols-2 gap-3">
+              <button class="scene-card" data-scene="aurora" type="button">
+                <span class="scene-preview scene-preview--aurora"></span>
+                <span class="scene-name">Aurora</span>
+              </button>
+              <button class="scene-card" data-scene="ink" type="button">
+                <span class="scene-preview scene-preview--ink"></span>
+                <span class="scene-name">Ink</span>
+              </button>
+              <button class="scene-card" data-scene="stars" type="button">
+                <span class="scene-preview scene-preview--stars"></span>
+                <span class="scene-name">Star Field</span>
+              </button>
+              <button class="scene-card" data-scene="lava" type="button">
+                <span class="scene-preview scene-preview--lava"></span>
+                <span class="scene-name">Lava Lamp</span>
+              </button>
+              <button class="scene-card" data-scene="fireflies" type="button">
+                <span class="scene-preview scene-preview--fireflies"></span>
+                <span class="scene-name">Fireflies</span>
+              </button>
+              <button class="scene-card" data-scene="nebula" type="button">
+                <span class="scene-preview scene-preview--nebula"></span>
+                <span class="scene-name">Nebula</span>
+              </button>
+              <button class="scene-card" data-scene="ripples" type="button">
+                <span class="scene-preview scene-preview--ripples"></span>
+                <span class="scene-name">Ripples</span>
+              </button>
+              <button class="scene-card" data-scene="constellation" type="button">
+                <span class="scene-preview scene-preview--constellation"></span>
+                <span class="scene-name">Constellation</span>
+              </button>
+            </div>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] opacity-50 tracking-widest uppercase"
+                  >Intensity</label
+                >
+                <span id="scene-intensity-value" class="text-[10px] opacity-40"
+                  >90%</span
+                >
+              </div>
+              <input
+                id="scene-intensity"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                class="scene-range w-full h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
+              />
+            </div>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] opacity-50 tracking-widest uppercase"
+                  >Speed</label
+                >
+                <span id="scene-speed-value" class="text-[10px] opacity-40"
+                  >1.0×</span
+                >
+              </div>
+              <input
+                id="scene-speed"
+                type="range"
+                min="0.2"
+                max="3"
+                step="0.1"
+                class="scene-range w-full h-1 rounded-full bg-white/10 appearance-none cursor-pointer"
+              />
+            </div>
+            <div class="space-y-2.5">
+              <label class="toggle-row">
+                <span>React to cursor</span>
+                <input type="checkbox" id="scene-cursor" class="toggle toggle-primary toggle-xs" />
+              </label>
+              <label class="toggle-row">
+                <span>Colors follow time of day</span>
+                <input type="checkbox" id="scene-daycycle" class="toggle toggle-primary toggle-xs" />
+              </label>
+              <label class="toggle-row">
+                <span>Blend over wallpaper</span>
+                <input type="checkbox" id="scene-blend" class="toggle toggle-primary toggle-xs" />
+              </label>
+              <label class="toggle-row">
+                <span>Battery saver (30fps)</span>
+                <input type="checkbox" id="scene-eco" class="toggle toggle-primary toggle-xs" />
+              </label>
+            </div>
           </div>
         </section>
 
@@ -633,6 +742,95 @@
       </div>
     </div>
 
+    <!-- ── CUSTOM THEME EDITOR (daisyUI modal + color wheel) ── -->
+    <dialog id="theme-editor" class="modal">
+      <div class="modal-box rounded-3xl w-full max-w-md p-7 custom-scrollbar">
+        <div class="flex justify-between items-start gap-3 mb-5">
+          <div>
+            <h3 class="font-black text-lg italic tracking-tight leading-none">
+              CUSTOM THEME
+            </h3>
+            <div class="h-[3px] w-8 bg-primary mt-2 rounded-full"></div>
+          </div>
+          <input
+            id="cw-name"
+            type="text"
+            maxlength="24"
+            placeholder="Theme name"
+            autocomplete="off"
+            class="cw-input max-w-[160px] text-right"
+          />
+        </div>
+
+        <!-- which part of the theme you are coloring -->
+        <div id="cw-slots" class="grid grid-cols-4 gap-2 mb-5">
+          <button type="button" class="cw-slot" data-slot="primary">
+            <span class="cw-slot-dot"></span>Accent
+          </button>
+          <button type="button" class="cw-slot" data-slot="a">
+            <span class="cw-slot-dot"></span>Scene 1
+          </button>
+          <button type="button" class="cw-slot" data-slot="b">
+            <span class="cw-slot-dot"></span>Scene 2
+          </button>
+          <button type="button" class="cw-slot" data-slot="c">
+            <span class="cw-slot-dot"></span>Scene 3
+          </button>
+        </div>
+
+        <!-- color wheel -->
+        <div class="flex flex-col items-center gap-4">
+          <div id="cw-wheel" class="cw-wheel">
+            <div id="cw-shade" class="cw-shade"></div>
+            <div id="cw-knob" class="cw-knob"></div>
+          </div>
+          <div class="w-full space-y-2">
+            <div class="flex justify-between items-center">
+              <span
+                id="cw-slot-label"
+                class="text-[10px] opacity-50 tracking-widest uppercase"
+                >Accent</span
+              >
+              <input
+                id="cw-hex"
+                type="text"
+                maxlength="7"
+                spellcheck="false"
+                autocomplete="off"
+                class="cw-input max-w-[110px] text-center font-mono uppercase"
+              />
+            </div>
+            <input id="cw-value" type="range" min="0" max="1" step="0.01" class="cw-value" />
+          </div>
+        </div>
+
+        <!-- live preview -->
+        <div id="cw-preview" class="cw-preview mt-5"></div>
+
+        <!-- quick starting points -->
+        <p class="text-[9px] uppercase tracking-[0.3em] opacity-30 mt-5 mb-2">
+          Quick start
+        </p>
+        <div id="cw-presets" class="flex flex-wrap gap-2"></div>
+
+        <p id="cw-limit-note" class="hidden text-[10px] text-red-400/70 mt-4">
+          You can keep up to 8 custom themes. Delete one to save a new one.
+        </p>
+
+        <div class="flex gap-3 mt-6">
+          <button id="cw-cancel" type="button" class="cw-btn cw-btn--ghost">
+            Cancel
+          </button>
+          <button id="cw-save" type="button" class="cw-btn cw-btn--primary">
+            Save &amp; Apply
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button aria-label="Close">close</button>
+      </form>
+    </dialog>
+
     <div id="sidebar-hover-zone"></div>
 
     <!-- ── OFFLINE TOAST ──────────────────────────────────────── -->
@@ -695,6 +893,10 @@
       </div>
     </div>
 
+    <!-- load order matters: helpers → scene engine → app -->
+    <script src="color.js"></script>
+    <script src="live-scene.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
+

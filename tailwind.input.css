@@ -1,0 +1,4 @@
+/* Tailwind v3 entry file → compiled to tailwindcss.css with `npm run build:css` */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
