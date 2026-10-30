@@ -1082,27 +1082,33 @@ void main() {
   });
 
   /* ══ 07. SCENE: INK (fluid simulation) ═════════════════════
-     A simplified real fluid: every mouse movement pushes velocity and
-     ink into the fluid, which swirls and diffuses.
-     Click the background → burst of ink in a random color from
-     INK_COLORS (remembered between visits).
-     Anti-glare: new ink replaces the old color under the cursor instead
-     of piling on top, and brightness is capped, so long hovering never
-     builds up into white. Ink also drops in by itself now and then. */
+         A real fluid: every mouse movement pushes velocity and ink into the
+         fluid, which swirls, curls and diffuses.
+         Click the background → shockwave + burst of ink in a random color
+         from INK_COLORS (remembered between visits).
+         Look: neon ink with soft bloom glow, light shafts that follow the
+         cursor, glossy liquid shading and a dark vignette.
+         Alive: ink drops in by itself now and then (nothing draws while the
+         mouse is idle).
+         Highlights are soft-clipped per hue (never harsh white), and new ink
+         replaces the old color instead of piling on top. */
   const INK_SHADERS = {
     splat: `
 uniform sampler2D uTarget;
-uniform float aspectRatio, radius, mixMode, amount;
+uniform float aspectRatio, radius, mixMode, amount, age;
 uniform vec3 color;
 uniform vec2 point;
 void main() {
   vec2 p = vUv - point;
   p.x *= aspectRatio;
   float g = exp(-dot(p, p) / radius);
-  vec3 base = texture(uTarget, vUv).xyz;
+  vec4 base4 = texture(uTarget, vUv);
+  vec3 base = base4.xyz;
   if (mixMode > 0.5) {
     // dye: blend TOWARD the color (never brighter than the color itself)
-    fragColor = vec4(mix(base, color, clamp(g * amount, 0.0, 1.0)), 1.0);
+    // alpha channel = age of the ink (fresh ink resets it, see "fade")
+    float w = clamp(g * amount, 0.0, 1.0);
+    fragColor = vec4(mix(base, color, w), mix(base4.a, age, w));
   } else {
     // velocity: add the push
     fragColor = vec4(base + g * color, 1.0);
@@ -1184,36 +1190,151 @@ void main() {
 uniform sampler2D uTexture;
 uniform float value;
 void main() { fragColor = value * texture(uTexture, vUv); }`,
+
+    // ── fade: ink ages (alpha channel); after `delay` seconds it melts away
+    fade: `
+uniform sampler2D uTex;
+uniform float dt, delay, rate;
+void main() {
+  vec4 d = texture(uTex, vUv);
+  float age = min(d.a + dt, 20.0);
+  float k = smoothstep(0.0, 0.4, age - delay);
+  fragColor = vec4(d.rgb * exp(-rate * k * dt), age);
+}`,
+
+    // ── glow: keep only the bright parts of the ink (soft threshold)
+    prefilter: `
+uniform sampler2D uTex;
+uniform float threshold, knee;
+void main() {
+  vec3 c = texture(uTex, vUv).rgb;
+  float br = max(c.r, max(c.g, c.b));
+  float rq = clamp(br - threshold + knee, 0.0, 2.0 * knee);
+  rq = rq * rq / (4.0 * knee + 0.0001);
+  c *= max(rq, br - threshold) / max(br, 0.0001);
+  fragColor = vec4(c, 1.0);
+}`,
+    // ── glow: 4x4 box downsample
+    down: `
+uniform sampler2D uTex;
+uniform vec2 texelSize;
+void main() {
+  vec3 s = texture(uTex, vUv + vec2(-1.0, -1.0) * texelSize).rgb
+         + texture(uTex, vUv + vec2( 1.0, -1.0) * texelSize).rgb
+         + texture(uTex, vUv + vec2(-1.0,  1.0) * texelSize).rgb
+         + texture(uTex, vUv + vec2( 1.0,  1.0) * texelSize).rgb;
+  fragColor = vec4(s * 0.25, 1.0);
+}`,
+    // ── glow: tent upsample + add the sharper level on top
+    up: `
+uniform sampler2D uLow, uHigh;
+uniform vec2 texelSize;
+uniform float weight;
+void main() {
+  vec3 s = texture(uLow, vUv).rgb * 4.0;
+  s += (texture(uLow, vUv + vec2(-texelSize.x, 0.0)).rgb
+      + texture(uLow, vUv + vec2( texelSize.x, 0.0)).rgb
+      + texture(uLow, vUv + vec2(0.0, -texelSize.y)).rgb
+      + texture(uLow, vUv + vec2(0.0,  texelSize.y)).rgb) * 2.0;
+  s += texture(uLow, vUv + vec2(-1.0, -1.0) * texelSize).rgb
+     + texture(uLow, vUv + vec2( 1.0, -1.0) * texelSize).rgb
+     + texture(uLow, vUv + vec2(-1.0,  1.0) * texelSize).rgb
+     + texture(uLow, vUv + vec2( 1.0,  1.0) * texelSize).rgb;
+  fragColor = vec4(s / 16.0 * weight + texture(uHigh, vUv).rgb, 1.0);
+}`,
+    // ── light shafts: radial blur of the bright ink away from uOrigin
+    rays: `
+uniform sampler2D uTex;
+uniform vec2 uOrigin;
+uniform float decay, density, weight;
+const int SAMPLES = 36;
+void main() {
+  vec2 dir = (uOrigin - vUv) * density / float(SAMPLES);
+  vec2 uv = vUv;
+  float illum = 1.0;
+  vec3 acc = vec3(0.0);
+  for (int i = 0; i < SAMPLES; i++) {
+    uv += dir;
+    acc += texture(uTex, uv).rgb * illum * weight;
+    illum *= decay;
+  }
+  fragColor = vec4(acc, 1.0);
+}`,
+
     display: `
-uniform sampler2D uDye;
+uniform sampler2D uDye, uBloom, uRays;
 uniform vec2 dyeTexel;
 uniform vec3 uBg;
-uniform float uTime;
+uniform float uTime, uBloomI, uRayI, uExposure;
 float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 void main() {
   vec3 c = texture(uDye, vUv).rgb;
-  // light the ink by its thickness → depth, like real ink in water
+  // light the ink by its thickness → depth, like glossy liquid
   float l = length(texture(uDye, vUv - vec2(dyeTexel.x, 0.0)).rgb);
   float r = length(texture(uDye, vUv + vec2(dyeTexel.x, 0.0)).rgb);
   float t = length(texture(uDye, vUv + vec2(0.0, dyeTexel.y)).rgb);
   float b = length(texture(uDye, vUv - vec2(0.0, dyeTexel.y)).rgb);
-  vec3 n = normalize(vec3(l - r, b - t, 0.6));
-  float diff = clamp(dot(n, normalize(vec3(0.3, 0.5, 1.0))), 0.0, 1.0);
+  vec3 n = normalize(vec3(l - r, b - t, 0.5));
+  vec3 Ld = normalize(vec3(0.35, 0.55, 1.0));
+  float diff = clamp(dot(n, Ld), 0.0, 1.0);
+  float spec = pow(clamp(dot(n, normalize(Ld + vec3(0.0, 0.0, 1.0))), 0.0, 1.0), 48.0);
 
-  vec3 ink = 1.0 - exp(-c * 1.4);
-  ink *= 0.82 + 0.3 * diff;
-  // anti-glare: cap brightness so ink never turns into harsh white
-  float lum = dot(ink, vec3(0.299, 0.587, 0.114));
-  if (lum > 0.5) ink *= 0.5 / lum;
+  vec3 ink = 1.0 - exp(-c * uExposure);
+  ink *= 0.72 + 0.5 * diff;
+  ink += ink * spec * 0.8;               // tinted sheen, not white glare
   float a = clamp(max(ink.r, max(ink.g, ink.b)) * 1.3, 0.0, 1.0);
   vec3 col = uBg * (1.0 - a * 0.85) + ink;
+
+  col += texture(uBloom, vUv).rgb * uBloomI;   // neon glow
+  col += texture(uRays, vUv).rgb * uRayI;      // light shafts
+
+  vec2 q = vUv - 0.5;
+  col *= 1.0 - dot(q, q) * 0.8;                // vignette
+
+  // soft shoulder on the brightest channel → keeps the hue, no white blowout
+  float mx = max(col.r, max(col.g, col.b));
+  if (mx > 0.8) {
+    float x = mx - 0.8;
+    col *= (0.8 + x / (1.0 + x * 6.0)) / mx;
+  }
   col += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;
   fragColor = vec4(col, 1.0);
 }`,
   };
 
-  const INK_SPEED = 0.1; // simulation speed (the slider's 1× = calm, slow ink)
-  const INK_LEVEL = 0.75; // ink color strength (lower = darker, softer)
+  // ── tweak the look here ─────────────────────────────────────
+  const INK_SPEED = 0.3; // simulation speed (the slider's 1× = calm, slow ink)
+  const INK_LEVEL = 1.0; // ink color strength (lower = darker, softer)
+  const INK_EXPOSURE = 2.0; // how fast thick ink saturates to full color
+  const INK_BLOOM = 0.35; // neon glow strength (0 = off)
+  const INK_RAYS = 0.35; // light shaft strength (0 = off)
+  const INK_SWIRL = 32; // vorticity: higher = curlier, more turbulent
+  const INK_FADE_DELAY = 2.5; // seconds the ink stays before it starts to fade
+  const INK_FADE_RATE = 1.0; // how fast it melts away after that (higher = quicker)
+  const INK_BURST_EXTRA = 3.5; // click bursts + ambient drops live this many seconds longer
+  const INK_VEL_FADE = 0.15; // how fast motion calms down
+
+  // random ink drops (when you're not touching anything)
+  const INK_AMBIENT_SIZE = 3.5; // drop size (old = 2.2, which flooded the screen)
+  const INK_AMBIENT_INK = 0.6; // how much ink each drop lays down
+  const INK_AMBIENT_BRIGHT = 0.6; // drop brightness (keeps the glow gentle)
+  const INK_AMBIENT_PUSH = 250; // how hard a drop shoves the fluid
+  // each random drop also draws a trail, like a ghost mouse wandering around
+  const INK_AMBIENT_TRAIL_LEN = 2.5; // seconds a ghost mouse keeps drawing (0 = no trail)
+  const INK_AMBIENT_TRAIL_SPEED = 0.3; // how fast it moves (screens per second)
+  const INK_AMBIENT_TRAIL_CURVE = 1.2; // how much its path bends (higher = loopier)
+  const INK_AMBIENT_TRAIL_PX = 25; // max trail thickness in screen pixels (measured at half brightness)
+
+  // mouse trail feel
+  const INK_POINTER_SIZE = 1.6; // brush size (lower = thinner line)
+  const INK_POINTER_INK_MIN = 0.2; // ink laid down by a slow move (higher = smoother, more solid slow lines)
+  const INK_POINTER_SLOW_EXTRA = 2; // slow strokes last this many seconds longer (fast ones don't)
+  const INK_POINTER_INK_BOOST = 0.15; // extra ink for fast moves
+  const INK_POINTER_BRIGHT = 0.85; // max brightness of the trail (hovering can never exceed this)
+  const INK_POINTER_PUSH = 10000; // how hard the mouse shoves the fluid (lower = calmer)
+
+  // click burst
+  const INK_CLICK_BRIGHT = 0.85; // burst brightness (keeps the glow from blinding)
 
   // Before the first click the ink uses the theme colors; every click
   // picks a random color from this list.
@@ -1282,16 +1403,23 @@ void main() {
       for (const k in INK_SHADERS) this.p[k] = makeProgram(gl, INK_SHADERS[k]);
       this.queue = [];
       this.clicks = [];
+      this.strokes = [];
       this.key = "";
       this.colorPos = 0;
       this.ambient = 0.3;
       this.fresh = true;
+      this.clock = 0;
+      this.idleT = 0; // seconds since the last mouse movement
+      this.px = 0.5; // last pointer position (0..1, y up)
+      this.py = 0.5;
+      this.light = [0.5, 0.5]; // light-shaft origin (smoothed)
+      this.bloom = null;
       const saved = localStorage.getItem("gx_ink_color");
       const idx = saved === null ? -1 : Number(saved);
       this.colorIdx = idx >= 0 && idx < INK_COLORS.length ? idx : -1; // -1 = theme colors
       return true;
     },
-    // theme colors (default) or the clicked color ± a small hue shimmer
+    // theme colors (default) or the clicked color ± a hue shimmer
     applyColor(e) {
       if (this.colorIdx < 0) {
         this.cols = [pal(e, 0), pal(e, 1), pal(e, 2)];
@@ -1300,8 +1428,8 @@ void main() {
       const hex = INK_COLORS[this.colorIdx].hex;
       this.cols = [
         hex,
-        Color.rotateHue(hex, 14),
-        Color.rotateHue(hex, -14),
+        Color.rotateHue(hex, 32),
+        Color.rotateHue(hex, -32),
       ].map((h) => {
         const c = Color.hexToRgb(h);
         return [c.r / 255, c.g / 255, c.b / 255];
@@ -1318,7 +1446,7 @@ void main() {
       const dims = (res) =>
         asp > 1 ? [Math.round(res * asp), res] : [res, Math.round(res / asp)];
       const [sw, sh] = dims(e.eco ? 96 : 128);
-      const [dw, dh] = dims(e.eco ? 420 : 720);
+      const [dw, dh] = dims(e.eco ? 480 : 1024);
       const key = `${sw}x${sh}|${dw}x${dh}`;
       if (key === this.key) return; // only a color change
       this.key = key;
@@ -1328,10 +1456,45 @@ void main() {
       this.div = createFBO(gl, sw, sh);
       this.curl = createFBO(gl, sw, sh);
       this.dye = createDoubleFBO(gl, dw, dh);
+      this.buildBloom(e, dims);
       if (this.fresh) {
         this.fresh = false;
-        for (let i = 0; i < 6; i++) this.randomSplat(e);
+        for (let i = 0; i < 3; i++) this.randomSplat(e);
       }
+    },
+    // glow pyramid + light-shaft target (all small, cheap)
+    buildBloom(e, dims) {
+      const gl = e.gl;
+      const mk = (w, h) => ({
+        fbo: createFBO(gl, w, h),
+        ts: [1 / w, 1 / h],
+        w,
+        h,
+      });
+      const [pw, ph] = dims(e.eco ? 144 : 256);
+      const levels = e.eco ? 4 : 5;
+      const B = { pre: mk(pw, ph), down: [], up: [], rays: null };
+      let w = pw;
+      let h = ph;
+      for (let i = 0; i < levels; i++) {
+        w = Math.max(2, w >> 1);
+        h = Math.max(2, h >> 1);
+        B.down.push(mk(w, h));
+      }
+      for (let i = 0; i < levels - 1; i++) {
+        B.up.push(mk(B.down[i].w, B.down[i].h));
+      }
+      const [rw, rh] = dims(e.eco ? 96 : 160);
+      B.rays = mk(rw, rh);
+      this.bloom = B;
+    },
+    freeBloom(gl) {
+      const B = this.bloom;
+      if (!B) return;
+      for (const o of [B.pre, ...B.down, ...B.up, B.rays]) {
+        if (o) deleteFBO(gl, o.fbo);
+      }
+      this.bloom = null;
     },
     freeTargets(gl) {
       this.vel?.free();
@@ -1339,15 +1502,30 @@ void main() {
       this.dye?.free();
       deleteFBO(gl, this.div);
       deleteFBO(gl, this.curl);
+      this.freeBloom(gl);
       this.vel = this.pressure = this.dye = this.div = this.curl = null;
     },
-    // glides through the 3 palette colors
-    nextColor(scale) {
-      this.colorPos = (this.colorPos + 0.012) % 3;
+    // glides through the palette colors
+    nextColor(scale, rate = 0.012) {
+      const n = this.cols.length;
+      this.colorPos = (this.colorPos + rate) % n;
       const i = Math.floor(this.colorPos);
       const f = this.colorPos - i;
       const a = this.cols[i];
-      const b = this.cols[(i + 1) % 3];
+      const b = this.cols[(i + 1) % n];
+      return [
+        (a[0] + (b[0] - a[0]) * f) * scale,
+        (a[1] + (b[1] - a[1]) * f) * scale,
+        (a[2] + (b[2] - a[2]) * f) * scale,
+      ];
+    },
+    // a random shade from the palette (bursts get a rich mix of hues)
+    randColor(scale) {
+      const n = this.cols.length;
+      const i = Math.floor(Math.random() * n);
+      const f = Math.random();
+      const a = this.cols[i];
+      const b = this.cols[(i + 1) % n];
       return [
         (a[0] + (b[0] - a[0]) * f) * scale,
         (a[1] + (b[1] - a[1]) * f) * scale,
@@ -1355,7 +1533,7 @@ void main() {
       ];
     },
     // amount = how far the dye moves toward `color` at the center (0..1)
-    splat(e, x, y, vx, vy, color, radiusMul = 1, amount = 1) {
+    splat(e, x, y, vx, vy, color, radiusMul = 1, amount = 1, age = 0) {
       const gl = e.gl;
       const asp = e.w / e.h;
       let radius = 0.0022 * radiusMul;
@@ -1380,31 +1558,40 @@ void main() {
         radius,
         mixMode: 1,
         amount,
+        age,
       });
       drawTo(e, this.dye.write);
       this.dye.swap();
     },
     randomSplat(e) {
       const a = Math.random() * Math.PI * 2;
-      const s = 500 + Math.random() * 500;
+      const s = INK_AMBIENT_PUSH * (0.6 + Math.random() * 0.8);
+      const x = 0.15 + Math.random() * 0.7;
+      const y = 0.15 + Math.random() * 0.7;
       this.splat(
         e,
-        0.15 + Math.random() * 0.7,
-        0.15 + Math.random() * 0.7,
+        x,
+        y,
         Math.cos(a) * s,
         Math.sin(a) * s,
-        this.nextColor(INK_LEVEL * 0.8),
-        2.2,
-        0.9,
+        this.randColor(INK_LEVEL * INK_AMBIENT_BRIGHT),
+        INK_AMBIENT_SIZE,
+        INK_AMBIENT_INK,
+        -INK_BURST_EXTRA,
       );
+      return { x, y, a };
     },
     // called straight from pointermove → reacts to every movement
     onPointer(e, x, y, dx, dy) {
+      this.idleT = 0;
+      this.px = x;
+      this.py = 1 - y;
       if (this.queue.length > 48) this.queue.shift();
       this.queue.push(x, 1 - y, dx, -dy);
     },
     // click → new random color (never the same twice in a row) + ink burst
     onClick(e, x, y) {
+      this.idleT = 0;
       let next;
       do {
         next = Math.floor(Math.random() * INK_COLORS.length);
@@ -1417,36 +1604,57 @@ void main() {
     frame(e, dt, t) {
       const gl = e.gl;
       const P = this.p;
+      const asp = e.w / e.h;
       gl.disable(gl.BLEND);
       const step = Math.min(dt * INK_SPEED, 1 / 30);
+      this.clock += dt;
+      this.idleT += dt;
 
-      // click bursts: a ring of ink shooting outward in the new colors
+      // click: shockwave ring (motion only) + star of ink + fat center blob
       const cl = this.clicks;
       for (let i = 0; i < cl.length; i += 2) {
-        const spokes = 7;
+        const cx = cl[i];
+        const cy = cl[i + 1];
+        const ringTurn = Math.random() * Math.PI * 2;
+        for (let s = 0; s < 18; s++) {
+          const a = ringTurn + (s / 18) * Math.PI * 2;
+          this.splat(
+            e,
+            cx + (Math.cos(a) * 0.05) / asp,
+            cy + Math.sin(a) * 0.05,
+            Math.cos(a) * 1400,
+            Math.sin(a) * 1400,
+            [0, 0, 0],
+            0.8,
+            0,
+          );
+        }
+        const spokes = 10;
         const turn = Math.random() * Math.PI * 2;
         for (let s = 0; s < spokes; s++) {
           const a = turn + (s / spokes) * Math.PI * 2;
           this.splat(
             e,
-            cl[i],
-            cl[i + 1],
-            Math.cos(a) * 900,
-            Math.sin(a) * 900,
-            this.nextColor(INK_LEVEL),
+            cx,
+            cy,
+            Math.cos(a) * 1000,
+            Math.sin(a) * 1000,
+            this.randColor(INK_LEVEL * INK_CLICK_BRIGHT),
             1.3,
-            0.8,
+            0.85,
+            -INK_BURST_EXTRA,
           );
         }
         this.splat(
           e,
-          cl[i],
-          cl[i + 1],
+          cx,
+          cy,
           0,
           0,
-          this.nextColor(INK_LEVEL),
+          this.randColor(INK_LEVEL * INK_CLICK_BRIGHT),
           2.6,
-          0.9,
+          0.95,
+          -INK_BURST_EXTRA,
         );
       }
       cl.length = 0;
@@ -1455,11 +1663,26 @@ void main() {
       this.ambient -= dt;
       if (this.ambient <= 0) {
         this.ambient = 2.5 + Math.random() * 3.5;
-        this.randomSplat(e);
+        const o = this.randomSplat(e);
+        if (INK_AMBIENT_TRAIL_LEN > 0) {
+          this.strokes.push({
+            x: o.x,
+            y: o.y,
+            a: o.a,
+            turn: (Math.random() - 0.5) * 2 * INK_AMBIENT_TRAIL_CURVE,
+            t: 0,
+            life: INK_AMBIENT_TRAIL_LEN * (0.7 + Math.random() * 0.6),
+          });
+        }
       }
 
+      // light-shaft origin follows the cursor
+      const k = 1 - Math.exp(-dt * 3);
+      this.light[0] += (this.px - this.light[0]) * k;
+      this.light[1] += (this.py - this.light[1]) * k;
+
       // every queued mouse movement pushes fluid + ink; fast moves paint
-      // more, slow hovering only tints a little (no glare build-up)
+      // fatter and stronger, slow hovering only tints a little
       const q = this.queue;
       for (let i = 0; i < q.length; i += 4) {
         const speed = Math.hypot(q[i + 2], q[i + 3]);
@@ -1469,14 +1692,54 @@ void main() {
           e,
           q[i],
           q[i + 1],
-          q[i + 2] * 12000,
-          q[i + 3] * 12000,
-          this.nextColor(INK_LEVEL),
-          1,
-          0.08 + 0.3 * strength,
+          q[i + 2] * INK_POINTER_PUSH,
+          q[i + 3] * INK_POINTER_PUSH,
+          this.nextColor(INK_LEVEL * INK_POINTER_BRIGHT, 0.02),
+          INK_POINTER_SIZE,
+          INK_POINTER_INK_MIN + INK_POINTER_INK_BOOST * strength,
+          -INK_POINTER_SLOW_EXTRA * (1 - strength),
         );
       }
       q.length = 0;
+
+      // ghost mice from the random drops: wander along curved paths and
+      // draw with the same brush as the real mouse
+      const sk = this.strokes;
+      // brush size that gives a trail INK_AMBIENT_TRAIL_PX pixels wide
+      const trailFrac = INK_AMBIENT_TRAIL_PX / Math.max(1, window.innerHeight);
+      const trailSize =
+        (trailFrac / 2) ** 2 / Math.LN2 / (0.0022 * (asp > 1 ? asp : 1));
+      for (let i = sk.length - 1; i >= 0; i--) {
+        const s = sk[i];
+        s.t += dt;
+        if (s.t >= s.life) {
+          sk.splice(i, 1);
+          continue;
+        }
+        const ease = Math.sin((Math.PI * s.t) / s.life); // smooth start + stop
+        const speed = INK_AMBIENT_TRAIL_SPEED * (0.3 + 0.7 * ease);
+        s.a += s.turn * dt;
+        const dx = (Math.cos(s.a) * speed * dt) / asp;
+        const dy = Math.sin(s.a) * speed * dt;
+        s.x += dx;
+        s.y += dy;
+        if (s.x < 0.08 || s.x > 0.92 || s.y < 0.08 || s.y > 0.92) {
+          sk.splice(i, 1); // reached the edge: stop instead of piling up in the corner
+          continue;
+        }
+        const strength = Math.min(1, Math.hypot(dx, dy) * 60);
+        this.splat(
+          e,
+          s.x,
+          s.y,
+          dx * INK_POINTER_PUSH,
+          dy * INK_POINTER_PUSH,
+          this.nextColor(INK_LEVEL * INK_AMBIENT_BRIGHT, 0.02),
+          trailSize,
+          INK_POINTER_INK_MIN + INK_POINTER_INK_BOOST * strength,
+          -INK_BURST_EXTRA,
+        );
+      }
 
       if (step > 0) {
         const ts = this.vel.ts;
@@ -1490,7 +1753,7 @@ void main() {
           uVelocity: this.vel.read.tex,
           uCurl: this.curl.tex,
           texelSize: ts,
-          curl: 22,
+          curl: INK_SWIRL,
           dt: step,
         });
         drawTo(e, this.vel.write);
@@ -1533,7 +1796,7 @@ void main() {
           uSource: this.vel.read.tex,
           texelSize: ts,
           dt: step,
-          dissipation: 0.2,
+          dissipation: INK_VEL_FADE,
         });
         drawTo(e, this.vel.write);
         this.vel.swap();
@@ -1543,17 +1806,68 @@ void main() {
           uSource: this.dye.read.tex,
           texelSize: ts,
           dt: step,
-          dissipation: 1,
+          dissipation: 0, // fading is handled by the "fade" pass below
         });
         drawTo(e, this.dye.write);
         this.dye.swap();
       }
 
+      // ink ages in real time and melts away after INK_FADE_DELAY seconds
+      setUniforms(gl, P.fade, {
+        uTex: this.dye.read.tex,
+        dt: Math.min(dt, 0.05),
+        delay: INK_FADE_DELAY,
+        rate: INK_FADE_RATE,
+      });
+      drawTo(e, this.dye.write);
+      this.dye.swap();
+
+      // ── glow + light shafts (built from the bright parts of the ink)
+      const B = this.bloom;
+      setUniforms(gl, P.prefilter, {
+        uTex: this.dye.read.tex,
+        threshold: 0.55,
+        knee: 0.5,
+      });
+      drawTo(e, B.pre.fbo);
+
+      let src = B.pre;
+      for (const d of B.down) {
+        setUniforms(gl, P.down, { uTex: src.fbo.tex, texelSize: src.ts });
+        drawTo(e, d.fbo);
+        src = d;
+      }
+      let low = B.down[B.down.length - 1];
+      for (let i = B.up.length - 1; i >= 0; i--) {
+        setUniforms(gl, P.up, {
+          uLow: low.fbo.tex,
+          uHigh: B.down[i].fbo.tex,
+          texelSize: low.ts,
+          weight: 1,
+        });
+        drawTo(e, B.up[i].fbo);
+        low = B.up[i];
+      }
+
+      setUniforms(gl, P.rays, {
+        uTex: B.pre.fbo.tex,
+        uOrigin: this.light,
+        decay: 0.965,
+        density: 0.95,
+        weight: 0.045,
+      });
+      drawTo(e, B.rays.fbo);
+
       setUniforms(gl, P.display, {
         uDye: this.dye.read.tex,
+        uBloom: low.fbo.tex,
+        uRays: B.rays.fbo.tex,
         dyeTexel: this.dye.ts,
         uBg: this.bg,
         uTime: t,
+        uBloomI: INK_BLOOM,
+        uRayI: INK_RAYS,
+        uExposure: INK_EXPOSURE,
       });
       drawTo(e, null);
     },
@@ -1566,8 +1880,10 @@ void main() {
       this.p = null;
       this.queue = [];
       this.clicks = [];
+      this.strokes = [];
       this.key = "";
       this.fresh = true;
+      this.bloom = null;
     },
   };
 
