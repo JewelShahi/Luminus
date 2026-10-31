@@ -216,9 +216,30 @@ header > div {
   min-width: 2ch;
 }
 
+/* clock, weather & task log cards follow the theme color (no border) */
+#time-widget,
+#time-widget-desktop,
+#weather-widget,
+#weather-widget-desktop,
+#notes-widget .glass-card,
+#notes-widget-mobile .glass-card {
+  background: rgba(var(--primary-rgb), 0.12);
+  border: none;
+  box-shadow:
+    0 20px 60px -12px rgba(0, 0, 0, 0.55),
+    0 0 40px -18px rgba(var(--primary-rgb), 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#weather-description,
+#weather-description-desktop {
+  background: rgba(var(--primary-rgb), 0.15);
+}
+
 /* ══ 06. GREETING ═════════════════════════════════════════════ */
 #focus-greeting {
   margin: 0;
+  max-width: 100%;
 }
 
 #greeting-text {
@@ -238,6 +259,24 @@ header > div {
     0 0 72px color-mix(in srgb, var(--primary) 10%, transparent);
   animation: fade-in 1s ease;
   margin: 0;
+
+  /* only wraps when it really has to, and evenly */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+/* size steps, set by the small script in script.js (data-size) */
+#greeting-text[data-size="m"] {
+  font-size: clamp(3rem, 6.5vw, 6rem);
+}
+
+#greeting-text[data-size="s"] {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+#greeting-text[data-size="xs"] {
+  font-size: clamp(2rem, 3.8vw, 3.25rem);
 }
 
 #focus-text {
@@ -248,6 +287,11 @@ header > div {
   opacity: 0.38;
   color: rgba(255, 255, 255, 0.75);
   animation: pulse-soft 4s ease-in-out infinite;
+
+  /* long text wraps instead of overflowing */
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: break-word;
 }
 
 /* ══ 07. SEARCH ═══════════════════════════════════════════════ */
@@ -1756,7 +1800,6 @@ body.is-dragging-task {
 }
 
 /* ══ 18. SCROLLBAR & UTILITIES ════════════════════════════════ */
-
 /* kill scrollbar-color/width from daisyUI (including its :hover rule)
    so Chrome 121+ doesn't ignore the ::-webkit-scrollbar rules below */
 :root,
@@ -1769,8 +1812,8 @@ body.is-dragging-task {
 
 html::-webkit-scrollbar,
 *::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 3px;
+  height: 3px;
 }
 
 html::-webkit-scrollbar-track,
@@ -1807,7 +1850,7 @@ html::-webkit-scrollbar-thumb:hover,
 
 .ring-primary {
   --tw-ring-color: var(--primary);
-} 
+}
 
 /* ══ 19. RESPONSIVE LAYOUT ════════════════════════════════════ */
 /* ── TOUCH SCREENS (no hover) ──
@@ -1877,6 +1920,18 @@ html::-webkit-scrollbar-thumb:hover,
     font-size: 2.4rem !important;
     line-height: 1;
     text-align: center;
+  }
+
+  #greeting-text[data-size="m"] {
+    font-size: 2.1rem !important;
+  }
+
+  #greeting-text[data-size="s"] {
+    font-size: 1.8rem !important;
+  }
+
+  #greeting-text[data-size="xs"] {
+    font-size: 1.5rem !important;
   }
 
   #focus-text {

@@ -308,12 +308,19 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ══ 05. USERNAME ═════════════════════════════════════════════ */
+const MAX_USERNAME_LENGTH = 30;
+
 function initUsername() {
   const input = document.getElementById("username-input");
   if (!input) return;
+
+  // cap a name that was saved before the limit existed
+  state.username = (state.username || "").slice(0, MAX_USERNAME_LENGTH);
   input.value = state.username;
+  input.maxLength = MAX_USERNAME_LENGTH;
+
   input.addEventListener("input", (e) => {
-    state.username = e.target.value.trim();
+    state.username = e.target.value.trim().slice(0, MAX_USERNAME_LENGTH);
     localStorage.setItem("gx_username", state.username);
     updateGreeting();
   });
@@ -698,41 +705,41 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
         const pts =
           n === 1
             ? [
-                [12, 23],
-                [20, 23],
-                [16, 27.5],
-              ]
+              [12, 23],
+              [20, 23],
+              [16, 27.5],
+            ]
             : n === 2
               ? [
-                  [10, 23],
-                  [16, 23],
-                  [22, 23],
-                  [13, 27.5],
-                  [19, 27.5],
-                ]
+                [10, 23],
+                [16, 23],
+                [22, 23],
+                [13, 27.5],
+                [19, 27.5],
+              ]
               : [
-                  [9, 23],
-                  [14, 23],
-                  [19, 23],
-                  [24, 23],
-                  [11.5, 27.5],
-                  [16.5, 27.5],
-                  [21.5, 27.5],
-                ];
+                [9, 23],
+                [14, 23],
+                [19, 23],
+                [24, 23],
+                [11.5, 27.5],
+                [16.5, 27.5],
+                [21.5, 27.5],
+              ];
         return pts.map(([x, y]) => streak(x, y, 1.6, C.drizzle, 1.5)).join("");
       }
       case "frz-drizzle": {
         const pts =
           n === 1
             ? [
-                [11, 23],
-                [17, 23],
-              ]
+              [11, 23],
+              [17, 23],
+            ]
             : [
-                [9.5, 23],
-                [15, 23],
-                [20.5, 23],
-              ];
+              [9.5, 23],
+              [15, 23],
+              [20.5, 23],
+            ];
         return (
           pts.map(([x, y]) => streak(x, y, 1.6, C.ice, 1.5)).join("") +
           flake(n === 1 ? 22.5 : 25, 27, 2.3, C.ice, 1.15) +
@@ -743,14 +750,14 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
         const pts =
           n === 1
             ? [
-                [11, 22.5],
-                [17, 22.5],
-              ]
+              [11, 22.5],
+              [17, 22.5],
+            ]
             : [
-                [9, 22.5],
-                [14.5, 24],
-                [20, 22.5],
-              ];
+              [9, 22.5],
+              [14.5, 24],
+              [20, 22.5],
+            ];
         return (
           pts
             .map(([x, y]) => streak(x, y, n === 1 ? 4.2 : 5.2, C.ice, 1.7))
@@ -761,21 +768,21 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
         const pts =
           n === 1
             ? [
-                [12.5, 24.5],
-                [20.5, 26.5],
-              ]
+              [12.5, 24.5],
+              [20.5, 26.5],
+            ]
             : n === 2
               ? [
-                  [10, 24.5],
-                  [16.5, 27.5],
-                  [23, 24.5],
-                ]
+                [10, 24.5],
+                [16.5, 27.5],
+                [23, 24.5],
+              ]
               : [
-                  [8.5, 24.5],
-                  [14, 27.8],
-                  [19.5, 24.5],
-                  [25, 27.8],
-                ];
+                [8.5, 24.5],
+                [14, 27.8],
+                [19.5, 24.5],
+                [25, 27.8],
+              ];
         return pts.map(([x, y]) => flake(x, y, n >= 3 ? 2.3 : 2.6)).join("");
       }
       case "grains": {
@@ -795,15 +802,15 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
         const pts =
           n === 1
             ? [
-                [10, 25.5],
-                [23.5, 26.5],
-              ]
+              [10, 25.5],
+              [23.5, 26.5],
+            ]
             : [
-                [9, 24.5],
-                [24, 24.5],
-                [10.5, 29],
-                [23, 29.5],
-              ];
+              [9, 24.5],
+              [24, 24.5],
+              [10.5, 29],
+              [23, 29.5],
+            ];
         return pts
           .map(
             ([x, y]) =>
@@ -826,9 +833,9 @@ function weatherIconSvg(code, isNight = false, uid = "wx") {
     case "clear":
       body = isNight
         ? moon(17, 16, 19) +
-          star(6.5, 8, 2, 0.95) +
-          star(9.5, 15.5, 1.3, 0.7) +
-          star(26.5, 27, 1.2, 0.55)
+        star(6.5, 8, 2, 0.95) +
+        star(9.5, 15.5, 1.3, 0.7) +
+        star(26.5, 27, 1.2, 0.55)
         : sun(16, 16, 6.8);
       break;
 
@@ -1461,13 +1468,13 @@ function openThemeEditor(id = null) {
   themeEditor.draft = existing
     ? { ...existing }
     : {
-        id: `ct-${Date.now().toString(36)}`,
-        name: `Custom ${state.customThemes.length + 1}`,
-        primary: getPrimaryHex(),
-        a: palette[0],
-        b: palette[1],
-        c: palette[2],
-      };
+      id: `ct-${Date.now().toString(36)}`,
+      name: `Custom ${state.customThemes.length + 1}`,
+      primary: getPrimaryHex(),
+      a: palette[0],
+      b: palette[1],
+      c: palette[2],
+    };
 
   const nameInput = document.getElementById("cw-name");
   if (nameInput) nameInput.value = themeEditor.draft.name;
@@ -1550,7 +1557,7 @@ function syncSceneWithWallpaper() {
   if (bg) bg.style.opacity = hideWallpaper ? "0" : "";
   if (video) {
     if (hideWallpaper) video.pause();
-    else if (video.getAttribute("src")) video.play().catch(() => {});
+    else if (video.getAttribute("src")) video.play().catch(() => { });
   }
 }
 
@@ -2161,10 +2168,10 @@ function renderTasks() {
   const html = !state.tasks.length
     ? `<p class="text-[10px] opacity-20 text-center py-3 uppercase tracking-widest">No tasks yet</p>`
     : state.tasks
-        .map((t, i) => {
-          // only trusted hex values go into the style attribute
-          const color = LuminusColor.isHex(t.color) ? t.color : null;
-          return `
+      .map((t, i) => {
+        // only trusted hex values go into the style attribute
+        const color = LuminusColor.isHex(t.color) ? t.color : null;
+        return `
         <div class="task-item group ${color ? "has-color" : ""}" data-index="${i}"${color ? ` style="--task-color:${color}"` : ""}>
           <button class="task-drag" title="Drag to reorder" aria-label="Drag to reorder" tabindex="-1">
             <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" aria-hidden="true">
@@ -2183,8 +2190,8 @@ function renderTasks() {
           <button class="task-del">✕</button>
         </div>
       `;
-        })
-        .join("");
+      })
+      .join("");
   if (list) list.innerHTML = html;
   if (listMobile) listMobile.innerHTML = html;
 }
@@ -2389,7 +2396,7 @@ function initTaskDrag() {
         if (
           press &&
           Math.hypot(t.clientX - press.x, t.clientY - press.y) >
-            TASK_MOVE_CANCEL_PX
+          TASK_MOVE_CANCEL_PX
         ) {
           cancelPress(); // finger moved early → it's a scroll, not a drag
         }
@@ -2586,7 +2593,7 @@ function applyBg(url) {
       videoEl.src = url;
     }
     videoEl.style.display = "block";
-    videoEl.play().catch(() => {});
+    videoEl.play().catch(() => { });
     // Sidebar thumb: small low-quality static poster, never plays
     if (thumb) {
       thumb.style.backgroundImage = `url('${getVideoPosterUrl(url, { width: 300, quality: 25 })}')`;
@@ -2752,3 +2759,4 @@ window.addEventListener("beforeunload", () => {
   if (greetingIntervalId) clearInterval(greetingIntervalId);
   window.LiveScene?.destroy(); // also removes the scene's cursor/resize listeners
 });
+

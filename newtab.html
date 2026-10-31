@@ -412,9 +412,23 @@
           <div id="custom-theme-list" class="flex flex-wrap gap-2 mt-3"></div>
         </section>
 
-        <!-- ── LIVE SCENE ─────────────────────────────────────── -->
+        <!-- ── USER (moved here, right after themes) ──────────── -->
         <section>
-          <h3 class="sidebar-label">Live Scene</h3>
+          <h3 class="sidebar-label">User</h3>
+
+          <input
+            id="username-input"
+            type="text"
+            maxlength="30"
+            placeholder="Enter your name"
+            class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm outline-none focus:border-primary placeholder:text-white/20"
+            autocomplete="off"
+          />
+        </section>
+
+        <!-- ── INTERRACTIVE BACKGROUNDS ─────────────────────────────────────── -->
+        <section>
+          <h3 class="sidebar-label">Interractive backgrounds</h3>
           <label class="toggle-row mb-3">
             <span>Animated background</span>
             <input
@@ -533,18 +547,6 @@
               </label>
             </div>
           </div>
-        </section>
-
-        <section>
-          <h3 class="sidebar-label">User</h3>
-
-          <input
-            id="username-input"
-            type="text"
-            placeholder="Enter your name"
-            class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-sm outline-none focus:border-primary placeholder:text-white/20"
-            autocomplete="off"
-          />
         </section>
 
         <section>
