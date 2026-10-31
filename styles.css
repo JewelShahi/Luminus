@@ -75,7 +75,8 @@
 /* ══ 02. BASE ═════════════════════════════════════════════════ */
 /* (box-sizing reset lives in tailwindcss.css preflight) */
 * {
-  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-property:
+    background-color, border-color, color, box-shadow, opacity;
   transition-duration: 500ms;
   transition-timing-function: ease;
 }
@@ -491,7 +492,11 @@ header > div {
 }
 
 .task-item.has-color input[type="checkbox"] {
-  border-color: color-mix(in srgb, var(--task-color) 70%, transparent) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--task-color) 70%,
+    transparent
+  ) !important;
 }
 
 /* ⋮⋮ drag handle */
@@ -766,7 +771,16 @@ body.is-dragging-task {
 
 /* rainbow dot for the "Custom" skin button */
 .theme-dot--custom {
-  background: conic-gradient(#f43f5e, #fb923c, #facc15, #16a34a, #06b6d4, #3b82f6, #a855f7, #f43f5e);
+  background: conic-gradient(
+    #f43f5e,
+    #fb923c,
+    #facc15,
+    #16a34a,
+    #06b6d4,
+    #3b82f6,
+    #a855f7,
+    #f43f5e
+  );
 }
 
 .toggle-row {
@@ -1230,13 +1244,31 @@ body.is-dragging-task {
 
 /* "custom": rainbow until a custom color is picked */
 .tcp-swatch--custom {
-  background: conic-gradient(#f43f5e, #fb923c, #facc15, #16a34a, #06b6d4, #3b82f6, #a855f7, #f43f5e);
+  background: conic-gradient(
+    #f43f5e,
+    #fb923c,
+    #facc15,
+    #16a34a,
+    #06b6d4,
+    #3b82f6,
+    #a855f7,
+    #f43f5e
+  );
 }
 
 .tcp-swatch--custom.active {
   background:
     radial-gradient(circle, var(--sw) 0 46%, transparent 48%),
-    conic-gradient(#f43f5e, #fb923c, #facc15, #16a34a, #06b6d4, #3b82f6, #a855f7, #f43f5e);
+    conic-gradient(
+      #f43f5e,
+      #fb923c,
+      #facc15,
+      #16a34a,
+      #06b6d4,
+      #3b82f6,
+      #a855f7,
+      #f43f5e
+    );
 }
 
 .tcp-wheel-wrap {
@@ -1318,16 +1350,36 @@ body.is-dragging-task {
 
 .scene-preview--aurora {
   background-image:
-    radial-gradient(ellipse 60% 35% at 30% 65%, rgba(var(--primary-rgb), 0.85), transparent 70%),
-    radial-gradient(ellipse 50% 30% at 70% 55%, rgba(45, 212, 191, 0.6), transparent 70%),
+    radial-gradient(
+      ellipse 60% 35% at 30% 65%,
+      rgba(var(--primary-rgb), 0.85),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 30% at 70% 55%,
+      rgba(45, 212, 191, 0.6),
+      transparent 70%
+    ),
     linear-gradient(180deg, #05060a, #0b1020);
 }
 
 .scene-preview--ink {
   background-image:
-    radial-gradient(circle at 25% 40%, rgba(var(--primary-rgb), 0.7), transparent 40%),
-    radial-gradient(circle at 70% 65%, rgba(236, 72, 153, 0.5), transparent 45%),
-    radial-gradient(circle at 55% 20%, rgba(99, 102, 241, 0.45), transparent 35%);
+    radial-gradient(
+      circle at 25% 40%,
+      rgba(var(--primary-rgb), 0.7),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 70% 65%,
+      rgba(236, 72, 153, 0.5),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 55% 20%,
+      rgba(99, 102, 241, 0.45),
+      transparent 35%
+    );
 }
 
 .scene-preview--stars {
@@ -1337,28 +1389,52 @@ body.is-dragging-task {
     radial-gradient(1.5px 1.5px at 45% 70%, #fff, transparent),
     radial-gradient(1px 1px at 85% 60%, #fff, transparent),
     radial-gradient(1px 1px at 10% 80%, #fff, transparent),
-    radial-gradient(ellipse at 60% 50%, rgba(var(--primary-rgb), 0.45), transparent 60%);
+    radial-gradient(
+      ellipse at 60% 50%,
+      rgba(var(--primary-rgb), 0.45),
+      transparent 60%
+    );
   background-size: 100% 100%;
   animation-name: scene-twinkle;
 }
 
 .scene-preview--lava {
   background-image:
-    radial-gradient(circle at 30% 75%, rgba(var(--primary-rgb), 0.95) 0 18%, transparent 30%),
-    radial-gradient(circle at 65% 35%, rgba(251, 146, 60, 0.9) 0 14%, transparent 26%),
-    radial-gradient(circle at 50% 95%, rgba(244, 63, 94, 0.9) 0 20%, transparent 32%),
+    radial-gradient(
+      circle at 30% 75%,
+      rgba(var(--primary-rgb), 0.95) 0 18%,
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 65% 35%,
+      rgba(251, 146, 60, 0.9) 0 14%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 50% 95%,
+      rgba(244, 63, 94, 0.9) 0 20%,
+      transparent 32%
+    ),
     linear-gradient(180deg, #0a0610, #160a12);
 }
 
 .scene-preview--fireflies {
   background-image:
     radial-gradient(2px 2px at 22% 35%, #fffbe0, transparent),
-    radial-gradient(5px 5px at 22% 35%, rgba(var(--primary-rgb), 0.6), transparent),
+    radial-gradient(
+      5px 5px at 22% 35%,
+      rgba(var(--primary-rgb), 0.6),
+      transparent
+    ),
     radial-gradient(2px 2px at 62% 55%, #fffbe0, transparent),
     radial-gradient(6px 6px at 62% 55%, rgba(250, 204, 21, 0.55), transparent),
     radial-gradient(1.5px 1.5px at 80% 25%, #fffbe0, transparent),
     radial-gradient(2px 2px at 40% 75%, #fffbe0, transparent),
-    radial-gradient(5px 5px at 40% 75%, rgba(var(--primary-rgb), 0.5), transparent),
+    radial-gradient(
+      5px 5px at 40% 75%,
+      rgba(var(--primary-rgb), 0.5),
+      transparent
+    ),
     linear-gradient(180deg, #05060c, #07120f);
   background-size: 100% 100%;
   animation-name: scene-twinkle;
@@ -1369,18 +1445,43 @@ body.is-dragging-task {
     radial-gradient(1px 1px at 18% 28%, #fff, transparent),
     radial-gradient(1px 1px at 76% 62%, #fff, transparent),
     radial-gradient(1px 1px at 58% 18%, #fff, transparent),
-    radial-gradient(ellipse 55% 45% at 35% 55%, rgba(var(--primary-rgb), 0.7), transparent 70%),
-    radial-gradient(ellipse 45% 40% at 68% 40%, rgba(236, 72, 153, 0.5), transparent 70%),
-    radial-gradient(ellipse 35% 30% at 55% 70%, rgba(45, 212, 191, 0.35), transparent 70%),
+    radial-gradient(
+      ellipse 55% 45% at 35% 55%,
+      rgba(var(--primary-rgb), 0.7),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 40% at 68% 40%,
+      rgba(236, 72, 153, 0.5),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 35% 30% at 55% 70%,
+      rgba(45, 212, 191, 0.35),
+      transparent 70%
+    ),
     linear-gradient(180deg, #03040a, #070612);
 }
 
 .scene-preview--ripples {
   background-image:
-    radial-gradient(circle at 40% 55%, transparent 18%, rgba(255, 255, 255, 0.35) 19%, transparent 21%,
-      transparent 30%, rgba(255, 255, 255, 0.2) 31%, transparent 33%,
-      transparent 44%, rgba(255, 255, 255, 0.1) 45%, transparent 47%),
-    radial-gradient(ellipse at 50% 60%, rgba(var(--primary-rgb), 0.45), transparent 70%),
+    radial-gradient(
+      circle at 40% 55%,
+      transparent 18%,
+      rgba(255, 255, 255, 0.35) 19%,
+      transparent 21%,
+      transparent 30%,
+      rgba(255, 255, 255, 0.2) 31%,
+      transparent 33%,
+      transparent 44%,
+      rgba(255, 255, 255, 0.1) 45%,
+      transparent 47%
+    ),
+    radial-gradient(
+      ellipse at 50% 60%,
+      rgba(var(--primary-rgb), 0.45),
+      transparent 70%
+    ),
     linear-gradient(180deg, #04101a, #061a24);
   background-size: 100% 100%;
   animation-name: scene-twinkle;
@@ -1388,8 +1489,18 @@ body.is-dragging-task {
 
 .scene-preview--constellation {
   background-image:
-    linear-gradient(28deg, transparent 47%, rgba(255, 255, 255, 0.3) 49%, transparent 51%),
-    linear-gradient(-35deg, transparent 47%, rgba(var(--primary-rgb), 0.45) 49%, transparent 51%),
+    linear-gradient(
+      28deg,
+      transparent 47%,
+      rgba(255, 255, 255, 0.3) 49%,
+      transparent 51%
+    ),
+    linear-gradient(
+      -35deg,
+      transparent 47%,
+      rgba(var(--primary-rgb), 0.45) 49%,
+      transparent 51%
+    ),
     radial-gradient(2px 2px at 30% 38%, #fff, transparent),
     radial-gradient(2px 2px at 68% 62%, #fff, transparent),
     radial-gradient(2px 2px at 50% 50%, #fff, transparent),
@@ -1645,17 +1756,37 @@ body.is-dragging-task {
 }
 
 /* ══ 18. SCROLLBAR & UTILITIES ════════════════════════════════ */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 2px;
+
+/* kill scrollbar-color/width from daisyUI (including its :hover rule)
+   so Chrome 121+ doesn't ignore the ::-webkit-scrollbar rules below */
+:root,
+:root:hover,
+*,
+*:hover {
+  scrollbar-width: auto !important;
+  scrollbar-color: auto !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+html::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+html::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
   background: rgba(var(--primary-rgb), 0.4);
   border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--primary-rgb), 0.7);
 }
 
 .font-jakarta {
@@ -1676,7 +1807,7 @@ body.is-dragging-task {
 
 .ring-primary {
   --tw-ring-color: var(--primary);
-}
+} 
 
 /* ══ 19. RESPONSIVE LAYOUT ════════════════════════════════════ */
 /* ── TOUCH SCREENS (no hover) ──
